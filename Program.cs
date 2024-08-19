@@ -9,7 +9,7 @@ namespace XMLConversationTranslator
         static void Main(string[] args)
         {
             Console.WriteLine("┌───────────────────────────────────────────────────────────────────────────────────────┐\r\n│                                                                                       │\r\n│   ─────┬─────           ────────┐  ┌───────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │       ───────      ────┤  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                ────────┘  └───────┘  └──────┘  └──────┘  └──────┘  └──────┘  │\r\n│                                                                                       │\r\n└───────────────────────────────────────────────────────────────────────────────────────┘");
-            Console.Write("Write ");
+            Console.Write("Type ");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("'ExitTranslation'");
             Console.ForegroundColor = ConsoleColor.White;
@@ -22,6 +22,8 @@ namespace XMLConversationTranslator
             // Prompt the user for the output file path
             Console.Write("Output XML file: ");
             string outputFilePath = Console.ReadLine();
+
+            int TranslatedLinesCount = 0;
 
             // Load the XML document
             XmlDocument xmlDoc = new XmlDocument();
@@ -64,7 +66,7 @@ namespace XMLConversationTranslator
                                 Console.WriteLine();
                             }
 
-
+                            
                             string translatedLine = Console.ReadLine();
 
                             // End translation session if user types 'ExitTranslation'
@@ -77,6 +79,7 @@ namespace XMLConversationTranslator
                             {
                                 // Set the translated value back to the 'line' attribute
                                 lineAttribute.Value = translatedLine;
+                                TranslatedLinesCount++;
                             }
 
                         }
@@ -93,6 +96,7 @@ namespace XMLConversationTranslator
             xmlDoc.Save(outputFilePath);
 
             Console.WriteLine($"Translation complete. The translated XML has been saved as '{outputFilePath}'.");
+            Console.WriteLine($"Translated {TranslatedLinesCount} lines.");
         }
     }
 }
