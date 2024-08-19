@@ -5,6 +5,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <StartupObject>XMLConversationTranslator.Program</StartupObject>
+    <SignAssembly>False</SignAssembly>
+    <ApplicationIcon>Untitled.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>
