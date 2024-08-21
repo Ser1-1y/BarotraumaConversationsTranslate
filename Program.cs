@@ -16,8 +16,8 @@ namespace XMLConversationTranslator
 
             Console.Write("Input XML file: ");
             string FilePath = Console.ReadLine();
-            if (FilePath is null) {
-                throw new ArgumentNullException("Could not find ", nameof(FilePath));
+            if (FilePath is null || !System.IO.File.Exists(FilePath)) {
+                throw new ArgumentNullException("Could not find file", nameof(FilePath));
             }
 
             int TranslatedLinesCount = 0;
@@ -44,29 +44,24 @@ namespace XMLConversationTranslator
                         if (!cyrillicRegex.IsMatch(originalLine))
                         {
                             // If it doesn't contain Russian, prompt for translation
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write("Original Line: ");
-                            Console.ForegroundColor = ConsoleColor.White;
-                            Console.Write(originalLine);
-                            if (traitAttribute != null)
-                            {
-                                Console.ForegroundColor = ConsoleColor.Green;
-                                Console.Write(" SpeakerTags: ");
-                                Console.ForegroundColor = ConsoleColor.White;
-                                Console.WriteLine(traitAttribute.Value);
-                            }
-                            else
-                            {
-                                Console.WriteLine();
-                            }
-
-                            string translatedLine = Console.ReadLine();
+                            string translatedLine = ExternalFunctions.WriteLine(originalLine, traitAttribute);
 
                             // End translation session if user types 'ExitTranslation'
-                            if (translatedLine.Equals("ExitTranslation", StringComparison.OrdinalIgnoreCase))
+                            if (translatedLine.Equals("ExitTranslation", StringComparison.OrdinalIgnoreCase) || translatedLine.Equals("ExitT", StringComparison.OrdinalIgnoreCase) || translatedLine.Equals("Exit", StringComparison.OrdinalIgnoreCase))
                             {
-                                Console.WriteLine("Ending session...");
-                                break;
+                                Console.WriteLine("Are you sure to exit? (y/n)");
+                                string answer = Console.ReadLine();
+                                if (answer == "y" || answer == "yes")
+                                {
+                                    Console.WriteLine("Ending session...");
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Continuing session...");
+                                    lineAttribute.Value = ExternalFunctions.WriteLine(originalLine, traitAttribute); ;
+                                    TranslatedLinesCount++;
+                                }
                             }
                             else
                             {
@@ -88,8 +83,8 @@ namespace XMLConversationTranslator
             // Save the modified XML document
             xmlDoc.Save(FilePath);
 
-            int EngLines = ConversationCounter.EnglishCounter(FilePath);
-            int RusLines = ConversationCounter.RussianCounter(FilePath);
+            int EngLines = ExternalFunctions.EnglishCounter(FilePath);
+            int RusLines = ExternalFunctions.RussianCounter(FilePath);
 
             Console.WriteLine($"Translation complete. The translated XML has been saved as '{FilePath}'.");
             Console.WriteLine($"Translated {TranslatedLinesCount} lines, {RusLines} in total.");

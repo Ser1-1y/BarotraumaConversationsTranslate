@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Xml;
 
-public static class ConversationCounter
+public static class ExternalFunctions
 {
     public static XmlNodeList XmlDocAnalysis(string FilePath)
     {
@@ -10,6 +10,28 @@ public static class ConversationCounter
         XmlNodeList conversationNodes = xmlDoc.SelectNodes("//Conversation");
 
         return conversationNodes;
+    }
+    public static string WriteLine(string originalLine, XmlAttribute traitAttribute)
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("Original Line: ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(originalLine);
+        if (traitAttribute != null)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(" SpeakerTags: ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(traitAttribute.Value);
+        }
+        else
+        {
+            Console.WriteLine();
+        }
+
+        string translatedLine = Console.ReadLine();
+
+        return translatedLine;
     }
     public static int EnglishCounter(string FilePath)
     {
