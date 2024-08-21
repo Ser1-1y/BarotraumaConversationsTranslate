@@ -1,6 +1,5 @@
-﻿using System;
+﻿using System.Text.RegularExpressions;
 using System.Xml;
-using System.Text.RegularExpressions;
 
 namespace XMLConversationTranslator
 {
@@ -15,24 +14,19 @@ namespace XMLConversationTranslator
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(" to stop");
 
-            // Prompt the user for the input file path
             Console.Write("Input XML file: ");
-            string inputFilePath = Console.ReadLine();
-
-            // Prompt the user for the output file path
-            Console.Write("Output XML file: ");
-            string outputFilePath = Console.ReadLine();
+            string FilePath = Console.ReadLine();
+            if (FilePath is null) {
+                throw new ArgumentNullException("Could not find ", nameof(FilePath));
+            }
 
             int TranslatedLinesCount = 0;
 
-            // Load the XML document
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(inputFilePath);
+            xmlDoc.Load(FilePath);
 
-            // Get all Conversation elements
             XmlNodeList conversationNodes = xmlDoc.SelectNodes("//Conversation");
 
-            // Regular expression to detect Russian (Cyrillic) characters
             Regex cyrillicRegex = new Regex(@"\p{IsCyrillic}");
 
             if (conversationNodes != null)
@@ -42,7 +36,7 @@ namespace XMLConversationTranslator
                     // Get the 'line' attribute
                     XmlAttribute lineAttribute = conversationNode.Attributes["line"];
                     XmlAttribute traitAttribute = conversationNode.Attributes["speakertags"];
-                    if (lineAttribute != null)
+                    if (lineAttribute != null && lineAttribute.Value != "")
                     {
                         string originalLine = lineAttribute.Value;
 
@@ -66,7 +60,6 @@ namespace XMLConversationTranslator
                                 Console.WriteLine();
                             }
 
-                            
                             string translatedLine = Console.ReadLine();
 
                             // End translation session if user types 'ExitTranslation'
@@ -93,10 +86,15 @@ namespace XMLConversationTranslator
             }
 
             // Save the modified XML document
-            xmlDoc.Save(outputFilePath);
+            xmlDoc.Save(FilePath);
 
-            Console.WriteLine($"Translation complete. The translated XML has been saved as '{outputFilePath}'.");
-            Console.WriteLine($"Translated {TranslatedLinesCount} lines.");
+            int EngLines = ConversationCounter.EnglishCounter(FilePath);
+            int RusLines = ConversationCounter.RussianCounter(FilePath);
+
+            Console.WriteLine($"Translation complete. The translated XML has been saved as '{FilePath}'.");
+            Console.WriteLine($"Translated {TranslatedLinesCount} lines, {RusLines} in total.");
+            Console.WriteLine($"{EngLines} English lines left.");
+            Console.ReadLine();
         }
     }
 }
