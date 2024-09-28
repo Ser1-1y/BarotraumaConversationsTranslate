@@ -13,6 +13,10 @@ namespace XMLConversationTranslator
         {
             System.StringComparison OIC = StringComparison.OrdinalIgnoreCase;
 
+            //
+            string AppVersion = "1.0.0.0";
+            //
+
             string ConfigFilePath = "config.json";
             Config config;
 
@@ -31,14 +35,13 @@ namespace XMLConversationTranslator
                 string answer = Console.ReadLine();
                 if (answer.Equals("y", OIC))
                 {
-                    ExternalFunctions.Settings(ConfigFilePath, json, OIC);
+                    ExternalFunctions.Settings(ConfigFilePath, json, OIC, AppVersion);
                     config = ExternalFunctions.ReadConfig(ConfigFilePath);
                 }
                 else
                 {
                     config = new Config();
                     config.ShowLoadedStrings = true;
-                    config.HasRecentlyLaunched = true;
                     config.DebugMode = false;
                     ExternalFunctions.WriteConfig(ConfigFilePath, config);
                     config = ExternalFunctions.ReadConfig(ConfigFilePath);
@@ -47,33 +50,45 @@ namespace XMLConversationTranslator
 
             Console.WriteLine("┌───────────────────────────────────────────────────────────────────────────────────────┐\r\n│                                                                                       │\r\n│   ─────┬─────           ────────┐  ┌───────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │       ───────      ────┤  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                ────────┘  └───────┘  └──────┘  └──────┘  └──────┘  └──────┘  │\r\n│                                                                                       │\r\n└───────────────────────────────────────────────────────────────────────────────────────┘");
 
-            ExternalFunctions.StartMenu(OIC, config);
+            ExternalFunctions.StartMenu(OIC, config, AppVersion);
             
             ExternalFunctions.WriteColor("Type <=Green>'Exit'</> to stop.\n");
 
-            Console.Write("Input XML file path: ");
-            string FilePath = Console.ReadLine();
-            if (!FilePath.EndsWith(".xml")) {
-                if (File.Exists(FilePath + ".xml"))
+            string FilePath;
+
+            if (!config.HasRecentlyLaunched || config.LastFile == null)
+            {
+                Console.Write("Input XML file path: ");
+                FilePath = Console.ReadLine();
+                if (!FilePath.EndsWith(".xml"))
                 {
-                    FilePath += ".xml";
-                }
-                else
-                {
-                    try
+                    if (File.Exists(FilePath + ".xml"))
                     {
-                        FilePath = config.LastFile;
+                        FilePath += ".xml";
                     }
-                    catch 
+                    else
                     {
-                        throw new ArgumentNullException("Could not find file", nameof(FilePath));
+                        try
+                        {
+                            FilePath = config.LastFile;
+                        }
+                        catch
+                        {
+                            throw new ArgumentNullException("Could not find file", nameof(FilePath));
+                        }
                     }
                 }
             }
+            else
+            {
+                FilePath = config.LastFile;
+            }
+            
+
 
             Console.WriteLine($"Loading {FilePath}...");
 
-            config.LastFile = FilePath;
+            
 
             int TranslatedLinesCount = 0;
 
@@ -88,6 +103,8 @@ namespace XMLConversationTranslator
 
             if (conversationNodes != null)
             {
+                config.HasRecentlyLaunched = true;
+
                 foreach (XmlNode conversationNode in conversationNodes)
                 {
                     XmlAttribute lineAttribute = conversationNode.Attributes["line"];
@@ -99,8 +116,7 @@ namespace XMLConversationTranslator
                         // Check if the line contains any Russian text
                         if (!cyrillicRegex.IsMatch(originalLine))
                         {
-                            if (config.ShowOriginalNodes) { Console.WriteLine(conversationNode.OuterXml); }
-                            string translatedLine = ExternalFunctions.WriteLine(originalLine, traitAttribute, config.DebugMode, conversationNode);
+                            string translatedLine = ExternalFunctions.WriteLine(originalLine, traitAttribute, config.ShowOriginalNodes, conversationNode);
 
                             if (translatedLine.Equals("ExitTranslation", OIC) ||
                                 translatedLine.Equals("ExitT", OIC) ||
@@ -112,9 +128,9 @@ namespace XMLConversationTranslator
                             }
                             if (translatedLine.Equals("Settings", OIC))
                             {
-                                ExternalFunctions.Settings(ConfigFilePath, config, OIC);
+                                ExternalFunctions.Settings(ConfigFilePath, config, OIC, AppVersion);
                                 config = ExternalFunctions.ReadConfig(ConfigFilePath);
-                                Console.WriteLine("Ending session...");
+                                Console.WriteLine("Ending session...\n");
                                 break;
                             }
                             else
@@ -135,6 +151,9 @@ namespace XMLConversationTranslator
                 }
             }
 
+            config.LastFile = FilePath;
+            ExternalFunctions.WriteConfig(ConfigFilePath, config);
+
             xmlDoc.Save(FilePath);
 
             int EngLines = ExternalFunctions.EnglishCounter(FilePath);
@@ -144,7 +163,7 @@ namespace XMLConversationTranslator
             double TimeInSeconds = Time * 60;
             double SecPerLineRounded = Math.Round(TimeInSeconds / TranslatedLinesCount, 1);
 
-            ExternalFunctions.WriteColor($"Translation complete. The translated XML has been saved as <=Green>'{FilePath}'</>.\n");
+            ExternalFunctions.WriteColor($"The translated XML has been saved as <=Green>'{FilePath}'</>.\n");
             ExternalFunctions.WriteColor($"Translated <=Green>{TranslatedLinesCount}</> lines, <=Green>{TransLines}</> in total.\n");
             ExternalFunctions.WriteColor($"<=Green>{EngLines}</> English lines left.\n");
             ExternalFunctions.WriteColor($"You've been working for <=Green>{Time}</> minutes.\n");

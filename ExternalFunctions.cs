@@ -26,7 +26,7 @@ public static class ExternalFunctions
         File.WriteAllText(ConfigFilePath, json);
     }
 
-    static public void StartMenu(System.StringComparison OIC, Config config)
+    static public void StartMenu(System.StringComparison OIC, Config config, string AppVersion)
     {
         bool continueSetting = true;
 
@@ -40,7 +40,8 @@ public static class ExternalFunctions
 
             Console.Write("Please select an option (1-3): ");
 
-            string choice = Console.ReadLine();
+            string choice = Console.ReadKey().KeyChar.ToString();
+            Console.WriteLine("");
 
             switch (choice)
             {
@@ -49,7 +50,7 @@ public static class ExternalFunctions
                     break;
 
                 case "2":
-                    Settings("config.json", config, OIC);
+                    ExternalFunctions.Settings("config.json", config, OIC, AppVersion);
                     break;
 
                 case "3":
@@ -59,17 +60,18 @@ public static class ExternalFunctions
 
                 default:
                     ExternalFunctions.WriteColor("<=Red>Invalid option</>. Please select a valid option <=Green>(1-3)</>\n.");
+                    Console.ReadKey();
                     break;
             }
             Console.Write("");
         }
     }
 
-    static public void Settings(string ConfigFilePath, Config config, System.StringComparison OIC)
+    static public void Settings(string ConfigFilePath, Config config, System.StringComparison OIC, string AppVersion)
     {
         bool continueSetting = true;
 
-        while (continueSetting is true)
+        while (continueSetting)
         {
             Console.Clear();
             Console.WriteLine("Settings Menu");
@@ -77,13 +79,18 @@ public static class ExternalFunctions
             ExternalFunctions.WriteColor("2. Activate debug mode: " + (config.DebugMode ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
             Console.WriteLine("3. Save and exit");
             Console.WriteLine("4. Exit without saving");
-            if (config.DebugMode) { ExternalFunctions.WriteColor("<=Gray>5. Delete config file</>\n"); }
-            if (config.DebugMode) { ExternalFunctions.WriteColor("<=Gray>6. Show original nodes when translating: </>" + (config.ShowOriginalNodes ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n")); }
+            if (config.DebugMode) 
+            {
+                ExternalFunctions.WriteColor("<=Gray>5. Delete config file</>\n");
+                ExternalFunctions.WriteColor("<=Gray>6. Show original nodes when translating: </>" + (config.ShowOriginalNodes ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
+                ExternalFunctions.WriteColor("<=Gray>7. Overwrite last file: </>" + config.LastFile + "\n");
+            }
             Console.Write("Please select an option (1-");
-            if (config.DebugMode) { Console.Write("6): "); } else { Console.Write("4): "); }
+            if (config.DebugMode) { Console.Write("7): "); } else { Console.Write("4): "); }
             Console.Write("");
 
-            string choice = Console.ReadLine();
+            string choice = Console.ReadKey().KeyChar.ToString();
+            Console.WriteLine("");
 
             switch (choice)
             {
@@ -97,9 +104,11 @@ public static class ExternalFunctions
                     break;
 
                 case "3":
+                    config.Version = AppVersion;
                     config.HasRecentlyLaunched = true;
                     ExternalFunctions.WriteConfig(ConfigFilePath, config);
                     Console.WriteLine("Settings saved successfully.");
+                    if (config.DebugMode) { Console.WriteLine(config); File.WriteAllText("logs.txt", JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented)); }
                     continueSetting = false;
                     break;
 
@@ -122,6 +131,16 @@ public static class ExternalFunctions
                     if (config.DebugMode)
                     {
                         config.ShowOriginalNodes = !config.ShowOriginalNodes;
+                        break;
+                    }
+                    break;
+
+                case "7":
+                    if (config.DebugMode)
+                    {
+                        Console.Write("Input XML file path: ");
+                        string FilePath = Console.ReadLine();
+                        config.LastFile = FilePath;
                         break;
                     }
                     break;
@@ -158,9 +177,9 @@ public static class ExternalFunctions
         return conversationNodes;
     }
 
-    public static string WriteLine(string originalLine, XmlAttribute traitAttribute, bool debugMode, XmlNode conversationNode)
+    public static string WriteLine(string originalLine, XmlAttribute traitAttribute, bool ShowOriginalNodes, XmlNode conversationNode)
     {
-        if (debugMode)
+        if (ShowOriginalNodes)
         {
             Console.Write($"<Conversation line=\"{originalLine}\" speaker=\"{conversationNode.Attributes["speaker"].Value}\"");
             if (traitAttribute != null) { Console.WriteLine($" speakertags=\"{traitAttribute.Value}\">"); }
