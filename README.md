@@ -23,8 +23,8 @@ It works for translating from any language that does not use Cyrillic into Russi
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
-   cd XMLConversationTranslator
+   git clone https://github.com/Ser1-1y/BarotraumaConversationsTranslate.git
+   cd BarotraumaConversationsTranslate
    ```
 
 2. Open the project.
@@ -33,13 +33,13 @@ It works for translating from any language that does not use Cyrillic into Russi
 
 ### Configuration
 
-The application requires a configuration file named `config.json`. If this file does not exist, the application will create one with default settings. You can choose to edit the configuration settings upon the first run.
+You can configure application using `config.json` or settings menu.
 
 ### Usage
 
 1. Run the application.
-2. Input the path to the XML file you wish to translate. The file should have a `.xml` extension.
-3. Follow the prompts to translate the conversation lines. Type `ExitTranslation` to stop the translation session.
+2. Input the path to the XML file you wish to translate.
+3. Translate lines. Type `Exit` to stop.
 4. The translated XML will be saved, and a summary of the translation session will be displayed.
 
 ### Example XML Structure
@@ -47,29 +47,25 @@ The application requires a configuration file named `config.json`. If this file 
 The XML file should contain conversation nodes structured as follows:
 
 ```xml
-<Conversations>
-    <Conversation line="Hello, how are you?" speakertags="Speaker1"/>
-    <Conversation line="Привет, как дела?" speakertags="Speaker2"/>
-</Conversations>
+  <Conversation line="I've been seeing an increase in rookie captains. High schoolers, applying for submarining early in life." speaker="0" maxintensity="0.4">
+    <Conversation line="They hold tryouts sometimes. I've heard the standards are extremely low." speaker="1">
+      <Conversation line="You've got that right." speaker="0" />
+      <Conversation line="I wouldn't want any of them to captain a submarine I'm on..." speaker="2" speakertags="fearful" />
+    </Conversation>
+    <Conversation line="Enthusiasm hastens their demise." speaker="1" speakertags="nihilist">
+      <Conversation line="I doubt that's true!" speaker="2" speakertags="optimist" />
+      <Conversation line="I can't say anything jokey. This just makes me sad." speaker="2" speakertags="joker" />
+    </Conversation>
+  </Conversation>
 ```
-
-## Functions
-
-- **ReadConfig**: Reads the configuration settings from a JSON file.
-- **WriteConfig**: Writes the configuration settings to a JSON file.
-- **Settings**: Allows the user to modify configuration settings.
-- **XmlDocAnalysis**: Analyzes the XML document and retrieves conversation nodes.
-- **WriteLine**: Prompts the user to input a translation for a given line.
-- **EnglishCounter**: Counts the number of English lines in the XML file.
-- **RussianCounter**: Counts the number of Russian lines in the XML file.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue for any enhancements or bug fixes.
+Please feel free to submit a pull request or open an issue for any enhancements or bug fixes.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the [Apache 2.0 License](LICENSE.txt).
 
 ---
 
