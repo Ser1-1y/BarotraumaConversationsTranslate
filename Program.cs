@@ -123,14 +123,12 @@ namespace XMLConversationTranslator
                                 translatedLine.Equals("Exit", OIC) ||
                                 translatedLine.Equals("", OIC))
                             {
-                                Console.Write("Ending session...");
                                 break;
                             }
                             if (translatedLine.Equals("Settings", OIC))
                             {
                                 ExternalFunctions.Settings(ConfigFilePath, config, OIC, AppVersion);
                                 config = ExternalFunctions.ReadConfig(ConfigFilePath);
-                                Console.WriteLine("Ending session...\n");
                                 break;
                             }
                             else
@@ -138,7 +136,6 @@ namespace XMLConversationTranslator
                                 lineAttribute.Value = translatedLine;
                                 TranslatedLinesCount++;
                             }
-
                         }
                         else
                         {
