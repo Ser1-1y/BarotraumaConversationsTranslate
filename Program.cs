@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using Newtonsoft.Json;
 using System.Threading;
-//using System.Configuration;
 
 namespace XMLConversationTranslator
 {
@@ -83,12 +82,8 @@ namespace XMLConversationTranslator
             {
                 FilePath = config.LastFile;
             }
-            
-
 
             Console.WriteLine($"Loading {FilePath}...");
-
-            
 
             int TranslatedLinesCount = 0;
 
@@ -112,8 +107,7 @@ namespace XMLConversationTranslator
                     if (lineAttribute != null && lineAttribute.Value != "")
                     {
                         string originalLine = lineAttribute.Value;
-
-                        // Check if the line contains any Russian text
+                        
                         if (!cyrillicRegex.IsMatch(originalLine))
                         {
                             string translatedLine = ExternalFunctions.WriteLine(originalLine, traitAttribute, config.ShowOriginalNodes, conversationNode);
