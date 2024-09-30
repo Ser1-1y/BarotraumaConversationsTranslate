@@ -1,6 +1,4 @@
 ﻿using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Xml;
 
@@ -85,7 +83,7 @@ public static class ExternalFunctions
             ExternalFunctions.WriteColor("2. Activate debug mode: " + (config.DebugMode ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
             Console.WriteLine("3. Save and exit");
             Console.WriteLine("4. Exit without saving");
-            if (config.DebugMode) 
+            if (config.DebugMode)
             {
                 ExternalFunctions.WriteColor("<=Gray>5. Delete config file</>\n");
                 ExternalFunctions.WriteColor("<=Gray>6. Show original nodes when translating: </>" + (config.ShowOriginalNodes ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
@@ -155,18 +153,18 @@ public static class ExternalFunctions
                         break;
                     }
                     break;
-                
+
                 case "0":
                     ExternalFunctions.WriteColor("Version: ");
                     const string pattern = @"^(\d{1,3}\.){3}\d{1,3}$";
                     string Version = Console.ReadLine();
-                    if (Version != "" && Regex.IsMatch(Version, pattern) 
-                        || Version != null && Regex.IsMatch(Version, pattern) ) 
+                    if (Version != "" && Regex.IsMatch(Version, pattern)
+                        || Version != null && Regex.IsMatch(Version, pattern))
                     {
-                        config.Version = Version; 
-                        ExternalFunctions.Logger("Settings -> 0 -> Version: " + Version, LogFilePath); 
+                        config.Version = Version;
+                        ExternalFunctions.Logger("Settings -> 0 -> Version: " + Version, LogFilePath);
                     }
-                    else 
+                    else
                     {
                         ExternalFunctions.WriteColor("<=Red>Invalid version</>. Please use a valid version.\n");
                         ExternalFunctions.Logger("Wrong input at Settings -> 0 -> Version: " + Version, LogFilePath);
