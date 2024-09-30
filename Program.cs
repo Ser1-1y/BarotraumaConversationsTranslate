@@ -16,7 +16,7 @@ namespace XMLConversationTranslator
             string AppVersion = "1.0.0.0";
             //
 
-            string ConfigFilePath = "config.json";
+            const string ConfigFilePath = "config.json";
             Config config;
 
             if (File.Exists(ConfigFilePath))
