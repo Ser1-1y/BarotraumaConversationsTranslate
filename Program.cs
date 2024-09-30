@@ -1,8 +1,5 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Xml;
-using Newtonsoft.Json;
-using System.Threading;
 
 namespace XMLConversationTranslator
 {
@@ -27,7 +24,8 @@ namespace XMLConversationTranslator
             {
                 ExternalFunctions.WriteColor("<=Red>No config file found</>\n");
                 Console.Write("Creating config file");
-                for (int i = 0; i < 5; i++) { Console.Write("."); Thread.Sleep(100); } Console.WriteLine();
+                for (int i = 0; i < 5; i++) { Console.Write("."); Thread.Sleep(100); }
+                Console.WriteLine();
                 Config json = new Config();
                 ExternalFunctions.WriteConfig(ConfigFilePath, json);
                 ExternalFunctions.WriteColor("Change config now? You can do that in the settings menu later. <=Green>(Y/n)</>\n");
@@ -48,6 +46,8 @@ namespace XMLConversationTranslator
             }
 
             ExternalFunctions.StartMenu(OIC, config, AppVersion);
+
+            Console.Clear();
 
             Console.WriteLine("┌───────────────────────────────────────────────────────────────────────────────────────┐\r\n│                                                                                       │\r\n│   ─────┬─────           ────────┐  ┌───────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │       ───────      ────┤  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                        │  │       │  │      │  │      │  │      │  │      │  │\r\n│        │                ────────┘  └───────┘  └──────┘  └──────┘  └──────┘  └──────┘  │\r\n│                                                                                       │\r\n└───────────────────────────────────────────────────────────────────────────────────────┘");
 
@@ -104,10 +104,10 @@ namespace XMLConversationTranslator
                 {
                     XmlAttribute lineAttribute = conversationNode.Attributes["line"];
                     XmlAttribute traitAttribute = conversationNode.Attributes["speakertags"];
-                    if (lineAttribute != null && lineAttribute.Value != "")
+                    if (lineAttribute != null && lineAttribute.Value != "" && lineAttribute.Value != "...")
                     {
                         string originalLine = lineAttribute.Value;
-                        
+
                         if (!cyrillicRegex.IsMatch(originalLine))
                         {
                             string translatedLine = ExternalFunctions.WriteLine(originalLine, traitAttribute, config.ShowOriginalNodes, conversationNode);
@@ -163,3 +163,4 @@ namespace XMLConversationTranslator
         }
     }
 }
+
