@@ -13,10 +13,10 @@ namespace XMLConversationTranslator
             System.StringComparison OIC = StringComparison.OrdinalIgnoreCase;
 
             //
-            string AppVersion = "1.0.0.0";
+            string AppVersion = "1.0.1.0";
             //
 
-            string ConfigFilePath = "config.json";
+            const string ConfigFilePath = "config.json";
             Config config;
 
             if (File.Exists(ConfigFilePath))
