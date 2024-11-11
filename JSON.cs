@@ -1,4 +1,6 @@
-﻿public class Config
+﻿namespace Translate;
+
+public class Config
 {
     public string Version { get; set; }
     public bool HasRecentlyLaunched { get; set; }

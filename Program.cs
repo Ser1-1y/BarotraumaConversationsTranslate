@@ -1,51 +1,55 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace XMLConversationTranslator
+namespace Translate
 {
     class Program
     {
         static void Main(string[] args)
         {
-            System.StringComparison OIC = StringComparison.OrdinalIgnoreCase;
+            const StringComparison oic = StringComparison.OrdinalIgnoreCase;
 
             //
-            string AppVersion = "1.0.1.0";
+            const string appVersion = "1.0.1.0";
             //
 
-            const string ConfigFilePath = "config.json";
+            const string configFilePath = "config.json";
             Config config;
 
-            if (File.Exists(ConfigFilePath))
+            if (File.Exists(configFilePath))
             {
-                config = ExternalFunctions.ReadConfig(ConfigFilePath);
+                config = ExternalFunctions.ReadConfig(configFilePath);
             }
             else
             {
                 ExternalFunctions.WriteColor("<=Red>No config file found</>\n");
                 Console.Write("Creating config file");
-                for (int i = 0; i < 5; i++) { Console.Write("."); Thread.Sleep(100); }
+                for (var i = 0; i < 5; i++) { Console.Write("."); Thread.Sleep(100); }
                 Console.WriteLine();
-                Config json = new Config();
-                ExternalFunctions.WriteConfig(ConfigFilePath, json);
+                var json = new Config();
+                ExternalFunctions.WriteConfig(configFilePath, json);
                 ExternalFunctions.WriteColor("Change config now? You can do that in the settings menu later. <=Green>(Y/n)</>\n");
-                string answer = Console.ReadLine();
-                if (answer.Equals("y", OIC))
+                var userChoice = Console.ReadLine() ?? throw new InvalidOperationException();
+                switch (userChoice.ToLower())
                 {
-                    ExternalFunctions.Settings(ConfigFilePath, json, OIC, AppVersion);
-                    config = ExternalFunctions.ReadConfig(ConfigFilePath);
+                    case "y" or "yes":
+                        ExternalFunctions.Settings(configFilePath, json, oic, appVersion);
+                        break;
+                    default:
+                        config = new Config
+                        {
+                            ShowLoadedStrings = true,
+                            DebugMode = false
+                        };
+                        ExternalFunctions.WriteConfig(configFilePath, config);
+                        break;
                 }
-                else
-                {
-                    config = new Config();
-                    config.ShowLoadedStrings = true;
-                    config.DebugMode = false;
-                    ExternalFunctions.WriteConfig(ConfigFilePath, config);
-                    config = ExternalFunctions.ReadConfig(ConfigFilePath);
-                }
+
+                config = ExternalFunctions.ReadConfig(configFilePath);
             }
 
-            ExternalFunctions.StartMenu(OIC, config, AppVersion);
+            ExternalFunctions.StartMenu(oic, config, appVersion);
 
             Console.Clear();
 
@@ -53,48 +57,48 @@ namespace XMLConversationTranslator
 
             ExternalFunctions.WriteColor("Type <=Green>'Exit'</> to stop.\n");
 
-            string FilePath;
+            string filePath;
 
             if (!config.HasRecentlyLaunched || config.LastFile == null)
             {
                 Console.Write("Input XML file path: ");
-                FilePath = Console.ReadLine();
-                if (!FilePath.EndsWith(".xml"))
+                filePath = Console.ReadLine() ?? throw new InvalidOperationException();
+                if (!filePath.EndsWith(".xml"))
                 {
-                    if (File.Exists(FilePath + ".xml"))
+                    if (File.Exists(filePath + ".xml"))
                     {
-                        FilePath += ".xml";
+                        filePath += ".xml";
                     }
                     else
                     {
                         try
                         {
-                            FilePath = config.LastFile;
+                            filePath = config.LastFile!;
                         }
                         catch
                         {
-                            throw new ArgumentNullException("Could not find file", nameof(FilePath));
+                            throw new ArgumentNullException(new StringBuilder().Append("Could not find file").ToString(), nameof(filePath));
                         }
                     }
                 }
             }
             else
             {
-                FilePath = config.LastFile;
+                filePath = config.LastFile;
             }
 
-            Console.WriteLine($"Loading {FilePath}...");
+            Console.WriteLine($"Loading {filePath}...");
 
-            int TranslatedLinesCount = 0;
+            var translatedLinesCount = 0;
 
-            DateTime StartDateTime = DateTime.Now;
+            var startDateTime = DateTime.Now;
 
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(FilePath);
+            var xmlDoc = new XmlDocument();
+            xmlDoc.Load(filePath);
 
-            XmlNodeList conversationNodes = xmlDoc.SelectNodes("//Conversation");
+            var conversationNodes = xmlDoc.SelectNodes("//Conversation");
 
-            Regex cyrillicRegex = new Regex(@"\p{IsCyrillic}");
+            var cyrillicRegex = new Regex(@"\p{IsCyrillic}");
 
             if (conversationNodes != null)
             {
@@ -102,38 +106,38 @@ namespace XMLConversationTranslator
 
                 foreach (XmlNode conversationNode in conversationNodes)
                 {
-                    XmlAttribute lineAttribute = conversationNode.Attributes["line"];
-                    XmlAttribute traitAttribute = conversationNode.Attributes["speakertags"];
+                    var lineAttribute = conversationNode.Attributes!["line"];
+                    var traitAttribute = conversationNode.Attributes["speakertags"];
                     if (lineAttribute != null && lineAttribute.Value != "" && lineAttribute.Value != "...")
                     {
-                        string originalLine = lineAttribute.Value;
+                        var originalLine = lineAttribute.Value;
 
                         if (!cyrillicRegex.IsMatch(originalLine))
                         {
-                            string translatedLine = ExternalFunctions.WriteLine(originalLine, traitAttribute, config.ShowOriginalNodes, conversationNode);
+                            var translatedLine = ExternalFunctions.WriteLine(originalLine, traitAttribute, config.ShowOriginalNodes, conversationNode);
 
-                            if (translatedLine.Equals("ExitTranslation", OIC) ||
-                                translatedLine.Equals("ExitT", OIC) ||
-                                translatedLine.Equals("Exit", OIC) ||
-                                translatedLine.Equals("", OIC))
+                            if (translatedLine.Equals("ExitTranslation", oic) ||
+                                translatedLine.Equals("ExitT", oic) ||
+                                translatedLine.Equals("Exit", oic) ||
+                                translatedLine.Equals("", oic))
                             {
                                 break;
                             }
-                            if (translatedLine.Equals("Settings", OIC))
+                            if (translatedLine.Equals("Settings", oic))
                             {
-                                ExternalFunctions.Settings(ConfigFilePath, config, OIC, AppVersion);
-                                config = ExternalFunctions.ReadConfig(ConfigFilePath);
+                                ExternalFunctions.Settings(configFilePath, config, oic, appVersion);
+                                config = ExternalFunctions.ReadConfig(configFilePath);
                                 break;
                             }
                             else
                             {
                                 lineAttribute.Value = translatedLine;
-                                TranslatedLinesCount++;
+                                translatedLinesCount++;
                             }
                         }
                         else
                         {
-                            if (config.ShowLoadedStrings == true)
+                            if (config.ShowLoadedStrings)
                             {
                                 Console.WriteLine($"Skipping: {originalLine}");
                             }
@@ -142,23 +146,23 @@ namespace XMLConversationTranslator
                 }
             }
 
-            config.LastFile = FilePath;
-            ExternalFunctions.WriteConfig(ConfigFilePath, config);
+            config.LastFile = filePath;
+            ExternalFunctions.WriteConfig(configFilePath, config);
 
-            xmlDoc.Save(FilePath);
+            xmlDoc.Save(filePath);
 
-            int EngLines = ExternalFunctions.EnglishCounter(FilePath);
-            int TransLines = ExternalFunctions.TransCounter(FilePath);
+            var engLines = ExternalFunctions.EnglishCounter(filePath);
+            var transLines = ExternalFunctions.TransCounter(filePath);
 
-            double Time = DateTime.Now.Subtract(StartDateTime).Minutes;
-            double TimeInSeconds = Time * 60;
-            double SecPerLineRounded = Math.Round(TimeInSeconds / TranslatedLinesCount, 1);
+            double time = DateTime.Now.Subtract(startDateTime).Minutes;
+            var timeInSeconds = time * 60;
+            var secPerLineRounded = Math.Round(timeInSeconds / translatedLinesCount, 1);
 
-            ExternalFunctions.WriteColor($"The translated XML has been saved as <=Green>'{FilePath}'</>.\n");
-            ExternalFunctions.WriteColor($"Translated <=Green>{TranslatedLinesCount}</> lines, <=Green>{TransLines}</> in total.\n");
-            ExternalFunctions.WriteColor($"<=Green>{EngLines}</> English lines left.\n");
-            ExternalFunctions.WriteColor($"You've been working for <=Green>{Time}</> minutes.\n");
-            ExternalFunctions.WriteColor($"That's roughly <=Green>{SecPerLineRounded}</> seconds per line.\n");
+            ExternalFunctions.WriteColor($"The translated XML has been saved as <=Green>'{filePath}'</>.\n");
+            ExternalFunctions.WriteColor($"Translated <=Green>{translatedLinesCount}</> lines, <=Green>{transLines}</> in total.\n");
+            ExternalFunctions.WriteColor($"<=Green>{engLines}</> English lines left.\n");
+            ExternalFunctions.WriteColor($"You've been working for <=Green>{time}</> minutes.\n");
+            ExternalFunctions.WriteColor($"That's roughly <=Green>{secPerLineRounded}</> seconds per line.\n");
             Console.ReadKey();
         }
     }

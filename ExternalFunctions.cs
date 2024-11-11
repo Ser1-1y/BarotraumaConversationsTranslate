@@ -1,16 +1,18 @@
-﻿using Newtonsoft.Json;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Xml;
+using Newtonsoft.Json;
+
+namespace Translate;
 
 public static class ExternalFunctions
 {
-    static public Config ReadConfig(string ConfigFilePath)
+    public static Config ReadConfig(string configFilePath)
     {
-        if (File.Exists(ConfigFilePath))
+        if (File.Exists(configFilePath))
         {
-            string json = File.ReadAllText(ConfigFilePath);
+            var json = File.ReadAllText(configFilePath);
 
-            return JsonConvert.DeserializeObject<Config>(json);
+            return JsonConvert.DeserializeObject<Config>(json) ?? throw new InvalidOperationException();
         }
         else
         {
@@ -20,17 +22,17 @@ public static class ExternalFunctions
         }
     }
 
-    static public void WriteConfig(string ConfigFilePath, Config config)
+    public static void WriteConfig(string configFilePath, Config config)
     {
-        string json = JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented);
-        File.WriteAllText(ConfigFilePath, json);
+        var json = JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented);
+        File.WriteAllText(configFilePath, json);
     }
 
-    static public void StartMenu(System.StringComparison OIC, Config config, string AppVersion)
+    public static void StartMenu(StringComparison oic, Config config, string appVersion)
     {
-        bool continueSetting = true;
+        var continueSetting = true;
 
-        while (continueSetting is true)
+        while (continueSetting)
         {
             Console.Clear();
             Console.WriteLine("Start Menu");
@@ -40,7 +42,7 @@ public static class ExternalFunctions
 
             Console.Write("Please select an option (1-3): ");
 
-            string choice = Console.ReadKey().KeyChar.ToString();
+            var choice = Console.ReadKey().KeyChar.ToString();
             Console.WriteLine("");
 
             switch (choice)
@@ -50,7 +52,7 @@ public static class ExternalFunctions
                     break;
 
                 case "2":
-                    ExternalFunctions.Settings("config.json", config, OIC, AppVersion);
+                    Settings("config.json", config, oic, appVersion);
                     break;
 
                 case "3":
@@ -59,7 +61,7 @@ public static class ExternalFunctions
                     break;
 
                 default:
-                    ExternalFunctions.WriteColor("<=Red>Invalid option</>. Please select a valid option <=Green>(1-3)</>\n.");
+                    WriteColor("<=Red>Invalid option</>. Please select a valid option <=Green>(1-3)</>\n.");
                     Console.ReadKey();
                     break;
             }
@@ -68,69 +70,68 @@ public static class ExternalFunctions
         }
     }
 
-    static public void Settings(string ConfigFilePath, Config config, System.StringComparison OIC, string AppVersion)
+    public static void Settings(string configFilePath, Config config, StringComparison oic, string appVersion)
     {
-        bool continueSetting = true;
+        var continueSetting = true;
 
-        string LogFilePath = $"logs-{DateTime.Now:yyyy-MM-dd}-v.{config.Version}.txt";
+        var logFilePath = $"logs-{DateTime.Now:yyyy-MM-dd}-v.{config.Version}.txt";
 
         while (continueSetting)
         {
             Console.Clear();
 
             Console.WriteLine("Settings Menu");
-            ExternalFunctions.WriteColor("1. Show translated strings when loading a file: " + (config.ShowLoadedStrings ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
-            ExternalFunctions.WriteColor("2. Activate debug mode: " + (config.DebugMode ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
+            WriteColor("1. Show translated strings when loading a file: " + (config.ShowLoadedStrings ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
+            WriteColor("2. Activate debug mode: " + (config.DebugMode ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
             Console.WriteLine("3. Save and exit");
             Console.WriteLine("4. Exit without saving");
             if (config.DebugMode)
             {
-                ExternalFunctions.WriteColor("<=Gray>5. Delete config file</>\n");
-                ExternalFunctions.WriteColor("<=Gray>6. Show original nodes when translating: </>" + (config.ShowOriginalNodes ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
-                ExternalFunctions.WriteColor("<=Gray>7. Overwrite last file: </>" + config.LastFile + "\n");
-                ExternalFunctions.WriteColor("<=Gray>Version: </>" + config.Version + "\n");
+                WriteColor("<=Gray>5. Delete config file</>\n");
+                WriteColor("<=Gray>6. Show original nodes when translating: </>" + (config.ShowOriginalNodes ? "<=Green>Enabled</>\n" : "<=Red>Disabled</>\n"));
+                WriteColor("<=Gray>7. Overwrite last file: </>" + config.LastFile + "\n");
+                WriteColor("<=Gray>Version: </>" + config.Version + "\n");
             }
             Console.Write("Please select an option (1-");
             if (config.DebugMode) { Console.Write("7): "); } else { Console.Write("4): "); }
             Console.Write("");
 
-            string choice = Console.ReadKey().KeyChar.ToString();
+            var choice = Console.ReadKey().KeyChar.ToString();
             Console.WriteLine("");
 
             switch (choice)
             {
                 case "1":
                     config.ShowLoadedStrings = !config.ShowLoadedStrings;
-                    ExternalFunctions.Logger("Settings -> 1 -> Show Loaded Strings: " + config.ShowLoadedStrings, LogFilePath);
+                    Logger("Settings -> 1 -> Show Loaded Strings: " + config.ShowLoadedStrings, logFilePath);
                     break;
 
                 case "2":
                     config.DebugMode = !config.DebugMode;
                     if (!config.DebugMode) { config.ShowOriginalNodes = false; }
-                    ExternalFunctions.Logger("Settings -> 2 -> Debug Mode: " + config.DebugMode, LogFilePath);
+                    Logger("Settings -> 2 -> Debug Mode: " + config.DebugMode, logFilePath);
                     break;
 
                 case "3":
                     config.HasRecentlyLaunched = true;
-                    ExternalFunctions.WriteConfig(ConfigFilePath, config);
+                    WriteConfig(configFilePath, config);
                     Console.WriteLine("Settings saved successfully.");
-                    if (config.DebugMode) { Console.WriteLine(config); ExternalFunctions.Logger("Settings -> 3 -> Save and Exit: \n" + JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented) + "\n", LogFilePath); }
+                    if (config.DebugMode) { Console.WriteLine(config); Logger("Settings -> 3 -> Save and Exit: \n" + JsonConvert.SerializeObject(config, Newtonsoft.Json.Formatting.Indented) + "\n", logFilePath); }
                     continueSetting = false;
                     break;
 
                 case "4":
                     Console.WriteLine("Exiting without saving changes.");
                     continueSetting = false;
-                    ExternalFunctions.Logger("Settings -> 4 -> Exit without saving changes", LogFilePath);
+                    Logger("Settings -> 4 -> Exit without saving changes", logFilePath);
                     break;
 
                 case "5":
                     if (config.DebugMode)
                     {
-                        ExternalFunctions.WriteColor("Are you sure you want to <=Red>delete the config file</>? <=Green>(Y/n)</>\n");
+                        WriteColor("Are you sure you want to <=Red>delete the config file</>? <=Green>(Y/n)</>\n");
                         choice = Console.ReadLine();
-                        if (choice.Equals("y", OIC)) { File.Delete(ConfigFilePath); Environment.Exit(0); ExternalFunctions.Logger("Settings -> 5 -> Delete config file: True", LogFilePath); }
-                        break;
+                        if (choice!.Equals("y", oic)) { File.Delete(configFilePath); Environment.Exit(0); Logger("Settings -> 5 -> Delete config file: True", logFilePath); }
                     }
                     break;
 
@@ -138,8 +139,7 @@ public static class ExternalFunctions
                     if (config.DebugMode)
                     {
                         config.ShowOriginalNodes = !config.ShowOriginalNodes;
-                        ExternalFunctions.Logger("Settings -> 6 -> ShowOriginalNodes: " + config.ShowOriginalNodes, LogFilePath);
-                        break;
+                        Logger("Settings -> 6 -> ShowOriginalNodes: " + config.ShowOriginalNodes, logFilePath);
                     }
                     break;
 
@@ -147,34 +147,33 @@ public static class ExternalFunctions
                     if (config.DebugMode)
                     {
                         Console.Write("Input XML file path: ");
-                        string FilePath = Console.ReadLine();
-                        config.LastFile = FilePath;
-                        ExternalFunctions.Logger("Settings -> 7 -> LastFile: " + config.LastFile, LogFilePath);
-                        break;
+                        var filePath = Console.ReadLine();
+                        config.LastFile = filePath;
+                        Logger("Settings -> 7 -> LastFile: " + config.LastFile, logFilePath);
                     }
                     break;
 
                 case "0":
-                    ExternalFunctions.WriteColor("Version: ");
+                    WriteColor("Version: ");
                     const string pattern = @"^(\d{1,3}\.){3}\d{1,3}$";
-                    string Version = Console.ReadLine();
-                    if (Version != "" && Regex.IsMatch(Version, pattern)
-                        || Version != null && Regex.IsMatch(Version, pattern))
+                    var version = Console.ReadLine();
+                    if (version != "" && Regex.IsMatch(version ?? throw new InvalidOperationException(), pattern)
+                        || Regex.IsMatch(version, pattern))
                     {
-                        config.Version = Version;
-                        ExternalFunctions.Logger("Settings -> 0 -> Version: " + Version, LogFilePath);
+                        config.Version = version;
+                        Logger("Settings -> 0 -> Version: " + version, logFilePath);
                     }
                     else
                     {
-                        ExternalFunctions.WriteColor("<=Red>Invalid version</>. Please use a valid version.\n");
-                        ExternalFunctions.Logger("Wrong input at Settings -> 0 -> Version: " + Version, LogFilePath);
+                        WriteColor("<=Red>Invalid version</>. Please use a valid version.\n");
+                        Logger("Wrong input at Settings -> 0 -> Version: " + version, logFilePath);
                         Console.ReadKey();
                     }
                     break;
 
                 default:
-                    ExternalFunctions.WriteColor("<=Red>Invalid option</>. Please select a valid option <=Green>(1-4)</>.\n");
-                    ExternalFunctions.Logger("Settings: Invalid option.", LogFilePath);
+                    WriteColor("<=Red>Invalid option</>. Please select a valid option <=Green>(1-4)</>.\n");
+                    Logger("Settings: Invalid option.", logFilePath);
                     Console.ReadKey();
                     break;
             }
@@ -184,96 +183,92 @@ public static class ExternalFunctions
 
     public static void WriteColor(string text)
     {
-        string[] ss = text.Split('<', '>');
-        ConsoleColor Color;
-        foreach (var String in ss)
-            if (String.StartsWith("/"))
+        var ss = text.Split('<', '>');
+        foreach (var @string in ss)
+            if (@string.StartsWith($"/"))
                 Console.ResetColor();
-            else if (String.StartsWith("=") && Enum.TryParse(String.Substring(1), out Color))
-                Console.ForegroundColor = Color;
+            else if (@string.StartsWith($"=") && Enum.TryParse(@string[1..], out ConsoleColor color))
+                Console.ForegroundColor = color;
             else
-                Console.Write(String);
+                Console.Write(@string);
     }
 
-    public static XmlNodeList XmlDocAnalysis(string FilePath)
+    private static XmlNodeList XmlDocAnalysis(string filePath)
     {
-        XmlDocument xmlDoc = new XmlDocument();
-        xmlDoc.Load(FilePath);
-        XmlNodeList conversationNodes = xmlDoc.SelectNodes("//Conversation");
+        var xmlDoc = new XmlDocument();
+        xmlDoc.Load(filePath);
+        var conversationNodes = xmlDoc.SelectNodes("//Conversation");
 
-        return conversationNodes;
+        return conversationNodes ?? throw new InvalidOperationException();
     }
 
-    public static string WriteLine(string originalLine, XmlAttribute traitAttribute, bool ShowOriginalNodes, XmlNode conversationNode)
+    public static string WriteLine(string originalLine, XmlAttribute? traitAttribute, bool showOriginalNodes, XmlNode conversationNode)
     {
-        if (ShowOriginalNodes)
+        if (showOriginalNodes)
         {
-            Console.Write($"<Conversation line=\"{originalLine}\" speaker=\"{conversationNode.Attributes["speaker"].Value}\"");
-            if (traitAttribute != null) { Console.WriteLine($" speakertags=\"{traitAttribute.Value}\">"); }
-            else { Console.WriteLine(">"); }
+            Console.Write($"<Conversation line=\"{originalLine}\" speaker=\"{conversationNode.Attributes!["speaker"]!.Value}\"");
+            Console.WriteLine(traitAttribute != null ? $" speakertags=\"{traitAttribute.Value}\">" : ">");
         }
-        ExternalFunctions.WriteColor($"<=Green>Original Line:</> {originalLine}");
+        WriteColor($"<=Green>Original Line:</> {originalLine}");
         if (traitAttribute != null)
         {
-            ExternalFunctions.WriteColor($"<=Green> SpeakerTags:</> {traitAttribute.Value}\n");
+            WriteColor($"<=Green> SpeakerTags:</> {traitAttribute.Value}\n");
         }
         else
         {
             Console.WriteLine();
         }
 
-        string translatedLine = Console.ReadLine();
-        return translatedLine;
+        var translatedLine = Console.ReadLine();
+        return translatedLine ?? throw new InvalidOperationException();
     }
 
-    public static int EnglishCounter(string FilePath)
+    public static int EnglishCounter(string filePath)
     {
-        int EnglishLinesCount = 0;
+        var englishLinesCount = 0;
 
-        XmlNodeList conversationNodes = XmlDocAnalysis(FilePath);
+        var conversationNodes = XmlDocAnalysis(filePath);
 
-        Regex cyrillicRegex = new Regex(@"\p{IsCyrillic}");
+        var cyrillicRegex = new Regex(@"\p{IsCyrillic}");
         foreach (XmlNode conversationNode in conversationNodes)
         {
-            XmlAttribute lineAttribute = conversationNode.Attributes["line"];
-            if (!cyrillicRegex.IsMatch(lineAttribute.Value))
+            var lineAttribute = conversationNode.Attributes!["line"];
+            if (!cyrillicRegex.IsMatch(lineAttribute!.Value))
             {
-                EnglishLinesCount++;
+                englishLinesCount++;
             }
         }
 
-        return EnglishLinesCount;
+        return englishLinesCount;
     }
 
-    public static int TransCounter(string FilePath)
+    public static int TransCounter(string filePath)
     {
-        int RussianLinesCount = 0;
+        var russianLinesCount = 0;
 
-        XmlNodeList conversationNodes = XmlDocAnalysis(FilePath);
+        var conversationNodes = XmlDocAnalysis(filePath);
 
-        Regex cyrillicRegex = new Regex(@"\p{IsCyrillic}");
+        var cyrillicRegex = new Regex(@"\p{IsCyrillic}");
         foreach (XmlNode conversationNode in conversationNodes)
         {
-            XmlAttribute lineAttribute = conversationNode.Attributes["line"];
-            if (cyrillicRegex.IsMatch(lineAttribute.Value))
+            var lineAttribute = conversationNode.Attributes!["line"];
+            if (cyrillicRegex.IsMatch(lineAttribute!.Value))
             {
-                RussianLinesCount++;
+                russianLinesCount++;
             }
         }
 
-        return RussianLinesCount;
+        return russianLinesCount;
     }
 
-    public static void Logger(string message, string logFilePath)
+    private static void Logger(string message, string logFilePath)
     {
         try
         {
-            string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}";
+            var logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - {message}";
 
-            using (StreamWriter writer = new StreamWriter(logFilePath, true))
-            {
-                writer.WriteLine(logEntry);
-            }
+            using var writer = new StreamWriter(logFilePath, true);
+            writer.WriteLine(logEntry);
         }
         catch (Exception ex)
         {
