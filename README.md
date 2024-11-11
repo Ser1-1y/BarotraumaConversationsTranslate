@@ -66,7 +66,3 @@ Please feel free to submit a pull request or open an issue for any enhancements 
 ## License
 
 This project is licensed under the [Apache 2.0 License](LICENSE.txt).
-
----
-
-Feel free to modify any sections as needed before adding it to your GitHub repository!
