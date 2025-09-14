@@ -22,7 +22,6 @@ public static class Program
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
         
-        Translation.Process(filePath, config, ConfigPath, Oic, out var translatedLinesCount);
-        Translation.GetResults(filePath, translatedLinesCount);
+        Translation.Process(filePath, config, ConfigPath, Oic);
     }
 }

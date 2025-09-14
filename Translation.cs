@@ -1,4 +1,5 @@
-﻿using System.Xml;
+﻿using System.Text;
+using System.Xml;
 
 namespace Translate;
 
@@ -29,17 +30,37 @@ internal static class Document
         if (tags != null) Color.Write($" <=Green>Tags:</> {tags.Value}\n");
         else Console.WriteLine();
 
-        return Console.ReadLine() ?? string.Empty;
+        var buffer = new StringBuilder();
+        while (true)
+        {
+            var key = Console.ReadKey(intercept: true);
+
+            // ReSharper disable once ConvertIfStatementToSwitchStatement
+            if (key.Key == ConsoleKey.Enter)
+            {
+                Console.WriteLine();
+                return buffer.ToString();
+            }
+            if (key.Key == ConsoleKey.Escape)
+            {
+                // Save and exit immediately
+                return "__EXIT__";
+            }
+
+            buffer.Append(key.KeyChar);
+            Console.Write(key.KeyChar);
+        }
     }
+
 }
 
 public static class Translation
 {
-    public static void Process(string filePath, Config config, string configPath, StringComparison oic, out int translatedLinesCount)
+    public static void Process(string filePath, Config config, string configPath, StringComparison oic)
     {
         Console.Clear();
-        
-        translatedLinesCount = 0;
+            
+        var translatedLinesCount = 0;
         var xmlDoc = new XmlDocument();
         xmlDoc = Document.Load(filePath, xmlDoc);
         config.FirstTimeUsing = false;
@@ -73,14 +94,22 @@ public static class Translation
                     Console.WriteLine($"Skipping: {line.Value}");
                 continue;
             }
-
+            
+            linecheck:
             var translatedLine = Document.WriteXmlLine(line.Value, tags, config.ShowOriginalNodes, conv);
 
+            if (translatedLine == "__EXIT__")
+            {
+                if (!Menu.ExitMenu())
+                    goto linecheck;
+                Document.Save(filePath, configPath, config, xmlDoc);
+                GetResults(filePath, translatedLinesCount);
+                Environment.Exit(0);
+            }
+                
             if (translatedLine.Equals("Settings", oic))
             {
-                config.LastFile = filePath;
-                Config.Write(configPath, config);
-                xmlDoc.Save(filePath);
+                Document.Save(filePath, configPath, config, xmlDoc);
                 Menu.SettingsMenu(configPath, config);
                 break;
             }
@@ -90,9 +119,10 @@ public static class Translation
         }
 
         Document.Save(filePath, configPath, config, xmlDoc);
+        GetResults(filePath, translatedLinesCount);
     }
-    
-    public static void GetResults(string filePath, int translatedLinesCount)
+
+    private static void GetResults(string filePath, int translatedLinesCount)
     {
         var engLines = Count.English(filePath);
         var transLines = Count.Translated(filePath);
@@ -106,5 +136,7 @@ public static class Translation
         Color.Write($"<=Green>{engLines}</> English lines left.\n");
         Color.Write($"Time: <=Green>{minutes:F1}</> minutes.\n");
         Color.Write($"≈ <=Green>{secPerLine}</> sec/line.\n");
+
+        Console.ReadKey();
     }
 }

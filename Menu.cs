@@ -210,4 +210,11 @@ public static class Menu
                 break;
         }
     }
+
+    public static bool ExitMenu()
+    {
+        Console.Clear();
+        
+        return VisualBoolMenu("Are you sure you want to exit?");
+    }
 }
