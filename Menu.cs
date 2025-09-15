@@ -156,7 +156,7 @@ public static class Menu
         
         Config.Write(configPath, config);
         if (startMenuAfter)
-            StartMenu(configPath, config);
+            StartMenu(config);
         return newFilePath;
     }
 
@@ -167,19 +167,21 @@ public static class Menu
         return Console.ReadLine() ?? "";
     }
 
-    public static MenuResult StartMenu(string configPath, Config config)
+    public static MenuResult StartMenu(Config config)
     {
         Console.Clear();
         PrintAsciiLogo();
 
+        const string configPath = Program.ConfigPath;
+        
         string[] choices =
-        {
+        [
             config.FirstTimeUsing ? "Start" : "Continue",
             "Settings",
             "Change File path",
             "Help",
             "Exit"
-        };
+        ];
 
         var choice = VisualMenu(choices, "Start Menu");
 

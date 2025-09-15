@@ -11,8 +11,10 @@ public class Config
     public bool DebugMode { get; set; }
     public bool ShowOriginalNodes { get; set; }
 
-    public static Config TryGet(string configPath)
+    public static Config TryGet()
     {
+        const string configPath = Program.ConfigPath;
+        
         if (File.Exists(configPath))
         {
             try

@@ -2,16 +2,16 @@
 
 public static class Program
 {
-    private const string ConfigPath = "config.json";
+    internal const string ConfigPath = "config.json";
 
     public static void Main()
     {
-        var config = Config.TryGet(ConfigPath);
+        var config = Config.TryGet();
 
         var running = true;
         while (running)
         {
-            var result = Menu.StartMenu(ConfigPath, config);
+            var result = Menu.StartMenu(config);
             if (result == MenuResult.Exit)
                 running = false;
         }
