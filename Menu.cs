@@ -1,4 +1,6 @@
-﻿namespace Translate;
+﻿using System.Text;
+
+namespace Translate;
 
 public enum MenuResult
 {
@@ -30,8 +32,13 @@ public static class Menu
         while (true)
         {
             Console.SetCursorPosition(left, top);
+            Console.Clear();
+
             if (!string.IsNullOrEmpty(title))
+            {
                 Console.WriteLine(title);
+                Console.WriteLine(new string('─', title.Length));
+            }
 
             for (var i = 0; i < options.Length; i++)
             {
@@ -44,28 +51,37 @@ public static class Menu
                 }
                 else
                 {
-                    Console.WriteLine($"  {options[i]}   ");
+                    Console.WriteLine($"  {options[i]}  ");
                 }
             }
 
             var keyInfo = Console.ReadKey(true);
-            var key = keyInfo.Key;
-
-            selected = key switch
+            switch (keyInfo.Key)
             {
-                ConsoleKey.UpArrow or ConsoleKey.LeftArrow => (selected - 1 + options.Length) % options.Length,
-                ConsoleKey.DownArrow or ConsoleKey.RightArrow => (selected + 1) % options.Length,
-                _ => selected
-            };
+                case ConsoleKey.UpArrow:
+                case ConsoleKey.LeftArrow:
+                    selected = (selected - 1 + options.Length) % options.Length;
+                    break;
 
-            if (key == ConsoleKey.Enter)
-                break;
+                case ConsoleKey.DownArrow:
+                case ConsoleKey.RightArrow:
+                    selected = (selected + 1) % options.Length;
+                    break;
+
+                case ConsoleKey.Enter:
+                    Console.CursorVisible = true;
+                    Console.Clear();
+                    return options[selected];
+
+                case ConsoleKey.Escape:
+                    Console.CursorVisible = true;
+                    Console.Clear();
+                    return ""; // Escape cancels
+            }
         }
-
-        Console.CursorVisible = true;
-        Console.Clear();
-        return options[selected];
     }
+
+
 
     private static bool VisualYesNoMenu(string title) =>
         VisualMenu(["Yes", "No"], title) == "Yes";

@@ -13,6 +13,13 @@ public enum TranslationResult
 
 internal static class Document
 {
+    private static void RedrawInput(StringBuilder buffer, int cursorPos)
+    {
+        Console.Write("\r"); // Move to start of line
+        Console.Write(buffer.ToString() + " "); // Draw text + clear leftover char
+        Console.SetCursorPosition(cursorPos, Console.CursorTop);
+    }
+
     internal static void Save(string filePath, string configPath, Config config, XmlDocument xmlDoc)
     {
         config.LastFile = filePath;
@@ -35,26 +42,88 @@ internal static class Document
         }
 
         Color.Write($"<=Green>Original:</> {original}");
-        if (tags != null) Color.Write($" <=Green>Tags:</> {tags.Value}\n");
-        else Console.WriteLine();
+        if (tags != null)
+            Color.Write($" <=Green>Tags:</> {tags.Value}\n");
+        else
+            Console.WriteLine();
 
         var buffer = new StringBuilder();
+        var cursorPos = 0;
+
         while (true)
         {
             var key = Console.ReadKey(intercept: true);
 
+            // ReSharper disable once ConvertIfStatementToSwitchStatement
             if (key.Key == ConsoleKey.Enter)
             {
                 Console.WriteLine();
                 return buffer.ToString();
             }
+
             if (key.Key == ConsoleKey.Escape)
-            {
                 return "__EXIT__";
+
+            if (key.Key == ConsoleKey.Backspace)
+            {
+                if (cursorPos > 0)
+                {
+                    buffer.Remove(cursorPos - 1, 1);
+                    cursorPos--;
+                    RedrawInput(buffer, cursorPos);
+                }
+                continue;
             }
 
-            buffer.Append(key.KeyChar);
-            Console.Write(key.KeyChar);
+            if (key.Key == ConsoleKey.Delete)
+            {
+                if (cursorPos < buffer.Length)
+                {
+                    buffer.Remove(cursorPos, 1);
+                    RedrawInput(buffer, cursorPos);
+                }
+                continue;
+            }
+
+            if (key.Key == ConsoleKey.LeftArrow)
+            {
+                if (cursorPos > 0)
+                {
+                    cursorPos--;
+                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                }
+                continue;
+            }
+
+            if (key.Key == ConsoleKey.RightArrow)
+            {
+                if (cursorPos < buffer.Length)
+                {
+                    cursorPos++;
+                    Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
+                }
+                continue;
+            }
+
+            if (key.Key == ConsoleKey.Home)
+            {
+                Console.SetCursorPosition(Console.CursorLeft - cursorPos, Console.CursorTop);
+                cursorPos = 0;
+                continue;
+            }
+
+            if (key.Key == ConsoleKey.End)
+            {
+                Console.SetCursorPosition(Console.CursorLeft + (buffer.Length - cursorPos), Console.CursorTop);
+                cursorPos = buffer.Length;
+                continue;
+            }
+
+            if (char.IsControl(key.KeyChar)) 
+                continue;
+            buffer.Insert(cursorPos, key.KeyChar);
+            cursorPos++;
+            RedrawInput(buffer, cursorPos);
         }
     }
 }
