@@ -56,7 +56,7 @@ internal static class Document
 
 public static class Translation
 {
-    public static void Process(string filePath, Config config, string configPath, StringComparison oic)
+    public static void Process(string filePath, Config config, string configPath)
     {
         Console.Clear();
             
@@ -107,7 +107,7 @@ public static class Translation
                 Environment.Exit(0);
             }
                 
-            if (translatedLine.Equals("Settings", oic))
+            if (translatedLine.Equals("Settings", StringComparison.OrdinalIgnoreCase))
             {
                 Document.Save(filePath, configPath, config, xmlDoc);
                 Menu.SettingsMenu(configPath, config);

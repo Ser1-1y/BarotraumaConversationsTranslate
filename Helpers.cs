@@ -2,16 +2,17 @@
 
 public static class Helpers
 {
-    public static string GetFilePath(Config config, string configPath, StringComparison oic)
+    public static string GetFilePath(Config config, string configPath)
     {
-        Console.Clear();
         if (!config.FirstTimeUsing && !string.IsNullOrEmpty(config.LastFile))
             return config.LastFile;
         
-        Console.Write("Input XML file path: ");
-        var path = Console.ReadLine() ?? throw new InvalidOperationException();
+        var path = Menu.ChangeFilePath();
 
-        switch (path.EndsWith(".xml", oic))
+        if (path!.StartsWith("\"") && path.EndsWith("\"")) 
+            path = path.Substring(1, path.Length - 2);
+        
+        switch (path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
         {
             case false when File.Exists(path + ".xml"):
                 path += ".xml";
@@ -19,7 +20,7 @@ public static class Helpers
             case false:
                 Console.WriteLine("Could not find such file");
                 Console.ReadKey();
-                GetFilePath(config, configPath, oic);
+                GetFilePath(config, configPath);
                 break;
         }
             

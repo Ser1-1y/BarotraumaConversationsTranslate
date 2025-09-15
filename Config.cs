@@ -18,7 +18,6 @@ public class Config
             return Read(configPath);
         }
         
-        Color.Write("<=Red>No config file found</>\n");
         Menu.ConfigMenu(configPath);
 
         return Read(configPath);
