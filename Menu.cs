@@ -1,11 +1,16 @@
 ﻿namespace Translate;
 
+public enum MenuResult
+{
+    Continue,
+    Exit
+}
+
 public static class Menu
 {
     private static void PrintAsciiLogo()
     {
         Console.WriteLine("""
-
                           ┌───────────────────────────────────────────────────────────────────────────────────────┐
                           │                                                                                       │
                           │   ─────┬─────           ────────┐  ┌───────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  │
@@ -15,45 +20,36 @@ public static class Menu
                           └───────────────────────────────────────────────────────────────────────────────────────┘
                           """);
     }
-    
-    /// <summary>
-    /// Presents a user with a graphic selection of some options.
-    /// </summary>
-    /// <param name="options">String array of options displayed to the user.</param>
-    /// <param name="title">Optional title for the options.</param>
-    /// <returns>String of a selected option</returns>
+
     private static string VisualMenu(string[] options, string title = "")
     {
         var selected = 0;
-        ConsoleKey key;
-
         var (left, top) = Console.GetCursorPosition();
         Console.CursorVisible = false;
-        
-        do
+
+        while (true)
         {
             Console.SetCursorPosition(left, top);
-            
-            if (title != "")
-                Console.Write(title + "\n");
-            
+            if (!string.IsNullOrEmpty(title))
+                Console.WriteLine(title);
+
             for (var i = 0; i < options.Length; i++)
             {
                 if (i == selected)
                 {
                     Console.BackgroundColor = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.Black;
-                    Console.WriteLine($"> {i}. {options[i]} <");
+                    Console.WriteLine($"> {options[i]} <");
                     Console.ResetColor();
                 }
                 else
                 {
-                    Console.WriteLine($"  {i}. {options[i]}  ");
+                    Console.WriteLine($"  {options[i]}");
                 }
             }
 
             var keyInfo = Console.ReadKey(true);
-            key = keyInfo.Key;
+            var key = keyInfo.Key;
 
             selected = key switch
             {
@@ -61,182 +57,162 @@ public static class Menu
                 ConsoleKey.DownArrow or ConsoleKey.RightArrow => (selected + 1) % options.Length,
                 _ => selected
             };
-        } while (key != ConsoleKey.Enter);
+
+            if (key == ConsoleKey.Enter)
+                break;
+        }
 
         Console.CursorVisible = true;
         Console.Clear();
         return options[selected];
     }
 
-    private static bool VisualYesNoMenu(string title)
-    {
-        var choice = VisualMenu(["Yes", "No"], title);
-        return choice == "Yes";
-    }
-    private static bool VisualOnOffMenu(string title)
-    {
-        var choice = VisualMenu(["On", "Off"], title);
-        return choice == "On";
-    }
+    private static bool VisualYesNoMenu(string title) =>
+        VisualMenu(["Yes", "No"], title) == "Yes";
+
+    private static bool VisualOnOffMenu(string title) =>
+        VisualMenu(["On", "Off"], title) == "On";
 
     public static void ConfigMenu(string configPath)
     {
         Console.Clear();
-        
         Color.Write("<=Red>No config file found</>\n");
         var choice = VisualYesNoMenu("Do you want to change the config now?");
-
         var config = new Config();
         if (choice)
             SettingsMenu(configPath, config);
         else
-        {
             Config.Write(configPath, config);
-        }
     }
 
     public static void SettingsMenu(string configPath, Config config)
     {
-        
-        Console.Clear();
-        
-        List<string> possibleChoices = [
-            "Continue",
-            "Show translated strings",
-            "Change File path",
-            "Debug Mode",
-            "Save and Exit",
-            "Exit without saving"];
-
-        if (config.DebugMode)
+        var loop = true;
+        while (loop)
         {
-            possibleChoices.AddRange([
-                "Delete config file",
-                "Show original nodes"]);
-        }
+            Console.Clear();
+            var choices = new List<string>
+            {
+                "Continue",
+                "Show translated strings",
+                "Change File path",
+                "Debug Mode",
+                "Save and Exit",
+                "Exit without saving"
+            };
 
-        var choice = VisualMenu(possibleChoices.ToArray(), $"Settings v{config.Version}");
+            if (config.DebugMode)
+            {
+                choices.Add("Delete config file");
+                choices.Add("Show original nodes");
+            }
 
-        bool settingChoice;
-        
-        switch (choice)
-        {
-            case "Continue":
-                Config.Write(configPath, config);
-                Program.Main();
-                return;
-            case "Show translated strings":
-                config.ShowLoadedStrings = VisualOnOffMenu($"Show translated strings: {(config.ShowLoadedStrings ? "[ON]" : "[OFF]")}");
-                break;
-            case "Change File path":
-                ChangeFilePath(configPath, config, false);
-                break;
-            case "Debug Mode":
-                config.DebugMode = VisualOnOffMenu($"Debug Mode: {(config.DebugMode ? "[ON]" : "[OFF]")}");
-                break;
-            case "Save and Exit":
-                config.FirstTimeUsing = true;
-                Config.Write(configPath, config);
-                Environment.Exit(0);
-                return;
-            case "Exit without saving":
-                settingChoice = VisualYesNoMenu("Are you sure you want to exit?");
-                if (!settingChoice)
+            var choice = VisualMenu(choices.ToArray(), $"Settings v{config.Version}");
+
+            switch (choice)
+            {
+                case "Continue":
+                    Config.Write(configPath, config);
+                    loop = false;
                     break;
-                Environment.Exit(0);
-                break;
-            case "Delete config file":
-                settingChoice = VisualYesNoMenu("Are you sure you want to delete the config file?" +
-                                               "\nThis will restart the program.");
-                if (!settingChoice)
+                case "Show translated strings":
+                    config.ShowLoadedStrings = VisualOnOffMenu($"Show translated strings: {(config.ShowLoadedStrings ? "[ON]" : "[OFF]")}");
                     break;
-                File.Delete(configPath); 
-                Environment.Exit(0);
-                Program.Main();
-                break;
-            case "Show original nodes":
-                config.ShowOriginalNodes = VisualOnOffMenu($"Show original nodes: {(config.ShowOriginalNodes ? "[ON]" : "[OFF]")}");
-                break;
+                case "Change File path":
+                    config.LastFile = ChangeFilePath(configPath, config, false);
+                    break;
+                case "Debug Mode":
+                    config.DebugMode = VisualOnOffMenu($"Debug Mode: {(config.DebugMode ? "[ON]" : "[OFF]")}");
+                    break;
+                case "Save and Exit":
+                    config.FirstTimeUsing = true;
+                    Config.Write(configPath, config);
+                    loop = false;
+                    break;
+                case "Exit without saving":
+                    if (VisualYesNoMenu("Are you sure you want to exit?"))
+                        loop = false;
+                    break;
+                case "Delete config file":
+                    if (VisualYesNoMenu("Are you sure you want to delete the config file?\nThis will restart the program."))
+                    {
+                        File.Delete(configPath);
+                        return;
+                    }
+                    break;
+                case "Show original nodes":
+                    config.ShowOriginalNodes = VisualOnOffMenu($"Show original nodes: {(config.ShowOriginalNodes ? "[ON]" : "[OFF]")}");
+                    break;
+            }
         }
-        // ReSharper disable once TailRecursiveCall
-        SettingsMenu(configPath, config);
     }
 
-    private static void ChangeFilePath(string configPath, Config config, bool start)
+    private static string ChangeFilePath(string configPath, Config config, bool startMenuAfter)
     {
         Console.Clear();
-        
         Console.WriteLine("Enter path to the XML file:");
-        var newFilePath = Console.ReadLine();
+        var newFilePath = Console.ReadLine() ?? "";
         config.LastFile = newFilePath;
-        Config.Write(configPath, config);
-        if (start)
-            StartMenu(configPath, config);
-    }
-    
-    public static string? ChangeFilePath()
-    {
-        Console.Clear();
         
-        Console.WriteLine("Enter path to the XML file:");
-        var newFilePath = Console.ReadLine();
+        Config.Write(configPath, config);
+        if (startMenuAfter)
+            StartMenu(configPath, config);
         return newFilePath;
     }
 
-    public static void StartMenu(string configPath, Config config)
+    public static string ChangeFilePath()
     {
         Console.Clear();
+        Console.WriteLine("Enter path to the XML file:");
+        return Console.ReadLine() ?? "";
+    }
 
+    public static MenuResult StartMenu(string configPath, Config config)
+    {
+        Console.Clear();
         PrintAsciiLogo();
 
         string[] choices =
-        [
-            "Continue",
+        {
+            config.FirstTimeUsing ? "Start" : "Continue",
             "Settings",
             "Change File path",
             "Help",
             "Exit"
-        ];
-        
-        if (config.FirstTimeUsing)
-            choices[0] = "Start";
-        
+        };
+
         var choice = VisualMenu(choices, "Start Menu");
 
         switch (choice)
         {
-            case "Start" or "Continue":
+            case "Start":
+            case "Continue":
                 var filePath = Helpers.GetFilePath(config, configPath);
-                Translation.Process(filePath, config, configPath);
-                break;
+                var result = Translation.Process(filePath, config, configPath);
+                
+                return result == TranslationResult.ExitRequested ? MenuResult.Exit : MenuResult.Continue;
             case "Settings":
                 SettingsMenu(configPath, config);
-                break;
+                return MenuResult.Continue;
             case "Change File path":
-                ChangeFilePath(configPath, config, true);
-                break;
+                config.LastFile = ChangeFilePath(configPath, config, true);
+                return MenuResult.Continue;
             case "Help":
                 Console.WriteLine("Press 'Escape' to exit while translating.\n" +
                                   "Write 'Settings' to access Settings.");
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
-                // ReSharper disable once TailRecursiveCall
-                StartMenu(configPath, config);
-                break;
+                return MenuResult.Continue;
             case "Exit":
-                var exitChoice = VisualYesNoMenu("Are you sure you want to exit?");
-                if (exitChoice)
-                    Environment.Exit(0);
-                // ReSharper disable once TailRecursiveCall
-                StartMenu(configPath, config);
-                break;
+                return VisualYesNoMenu("Are you sure you want to exit?") ? MenuResult.Exit : MenuResult.Continue;
+            default:
+                return MenuResult.Continue;
         }
     }
 
     public static bool ExitMenu()
     {
         Console.Clear();
-        
         return VisualYesNoMenu("Are you sure you want to exit?");
     }
 }

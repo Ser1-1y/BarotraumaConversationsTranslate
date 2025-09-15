@@ -8,8 +8,12 @@ public static class Program
     {
         var config = Config.TryGet(ConfigPath);
 
-        Menu.StartMenu(ConfigPath, config);
-        
-        Console.ReadKey();
+        var running = true;
+        while (running)
+        {
+            var result = Menu.StartMenu(ConfigPath, config);
+            if (result == MenuResult.Exit)
+                running = false;
+        }
     }
 }

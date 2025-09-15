@@ -3,6 +3,13 @@ using System.Xml;
 
 namespace Translate;
 
+public enum TranslationResult
+{
+    Completed,
+    ExitRequested,
+    BackToMenu
+}
+
 internal static class Document
 {
     internal static void Save(string filePath, string configPath, Config config, XmlDocument xmlDoc)
@@ -17,7 +24,7 @@ internal static class Document
         xmlDoc.Load(filePath);
         return xmlDoc;
     }
-    
+
     public static string WriteXmlLine(string original, XmlAttribute? tags, bool showNodes, XmlNode node)
     {
         if (showNodes)
@@ -35,7 +42,6 @@ internal static class Document
         {
             var key = Console.ReadKey(intercept: true);
 
-            // ReSharper disable once ConvertIfStatementToSwitchStatement
             if (key.Key == ConsoleKey.Enter)
             {
                 Console.WriteLine();
@@ -43,7 +49,6 @@ internal static class Document
             }
             if (key.Key == ConsoleKey.Escape)
             {
-                // Save and exit immediately
                 return "__EXIT__";
             }
 
@@ -51,38 +56,36 @@ internal static class Document
             Console.Write(key.KeyChar);
         }
     }
-
 }
 
 public static class Translation
 {
-    public static void Process(string filePath, Config config, string configPath)
+    public static TranslationResult Process(string filePath, Config config, string configPath)
     {
         Console.Clear();
-            
+
         var translatedLinesCount = 0;
         var xmlDoc = new XmlDocument();
         xmlDoc = Document.Load(filePath, xmlDoc);
         config.FirstTimeUsing = false;
 
         var nodes = xmlDoc.SelectNodes("//Conversation");
-
         if (nodes is null)
         {
             Console.WriteLine("[ERROR] There are no nodes.");
             config.LastFile = null;
             Config.Write(configPath, config);
             Console.ReadKey();
-            Environment.Exit(1);
+            return TranslationResult.BackToMenu;
         }
 
         foreach (XmlNode conv in nodes)
         {
             var line = conv.Attributes?["line"];
             var tags = conv.Attributes?["speakertags"];
-            if (line == null 
-                || string.IsNullOrWhiteSpace(line.Value) 
-                || line.Value == "..." 
+            if (line == null
+                || string.IsNullOrWhiteSpace(line.Value)
+                || line.Value == "..."
                 || Count.NumbersAndDotsRegex().IsMatch(line.Value))
             {
                 continue;
@@ -90,11 +93,11 @@ public static class Translation
 
             if (Count.CyrillicRegex().IsMatch(line.Value))
             {
-                if (config.ShowLoadedStrings) 
+                if (config.ShowLoadedStrings)
                     Console.WriteLine($"Skipping: {line.Value}");
                 continue;
             }
-            
+
             linecheck:
             var translatedLine = Document.WriteXmlLine(line.Value, tags, config.ShowOriginalNodes, conv);
 
@@ -102,16 +105,17 @@ public static class Translation
             {
                 if (!Menu.ExitMenu())
                     goto linecheck;
+
                 Document.Save(filePath, configPath, config, xmlDoc);
                 GetResults(filePath, translatedLinesCount);
-                Environment.Exit(0);
+                return TranslationResult.ExitRequested;
             }
-                
+
             if (translatedLine.Equals("Settings", StringComparison.OrdinalIgnoreCase))
             {
                 Document.Save(filePath, configPath, config, xmlDoc);
                 Menu.SettingsMenu(configPath, config);
-                break;
+                return TranslationResult.BackToMenu;
             }
 
             line.Value = translatedLine;
@@ -120,6 +124,7 @@ public static class Translation
 
         Document.Save(filePath, configPath, config, xmlDoc);
         GetResults(filePath, translatedLinesCount);
+        return TranslationResult.Completed;
     }
 
     private static void GetResults(string filePath, int translatedLinesCount)

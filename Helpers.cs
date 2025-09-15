@@ -6,26 +6,27 @@ public static class Helpers
     {
         if (!config.FirstTimeUsing && !string.IsNullOrEmpty(config.LastFile))
             return config.LastFile;
-        
-        var path = Menu.ChangeFilePath();
 
-        if (path!.StartsWith("\"") && path.EndsWith("\"")) 
-            path = path.Substring(1, path.Length - 2);
-        
-        switch (path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+        while (true)
         {
-            case false when File.Exists(path + ".xml"):
+            var path = Menu.ChangeFilePath();
+
+            if (path.StartsWith("\"") && path.EndsWith("\""))
+                path = path[1..^1];
+
+            if (!path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                 path += ".xml";
-                break;
-            case false:
-                Console.WriteLine("Could not find such file");
-                Console.ReadKey();
-                GetFilePath(config, configPath);
-                break;
+
+            if (File.Exists(path))
+            {
+                config.LastFile = path;
+                Config.Write(configPath, config);
+                return path;
+            }
+
+            Console.WriteLine("Could not find such file. Press any key to retry.");
+            Console.ReadKey();
         }
-            
-        Config.Write(configPath, config);
-        return path;
     }
 }
 
@@ -36,9 +37,12 @@ public static class Color
         var parts = text.Split('<', '>');
         foreach (var part in parts)
         {
-            if (part.StartsWith("/")) Console.ResetColor();
-            else if (part.StartsWith("=") && Enum.TryParse(part[1..], out ConsoleColor color)) Console.ForegroundColor = color;
-            else Console.Write(part);
+            if (part.StartsWith("/"))
+                Console.ResetColor();
+            else if (part.StartsWith("=") && Enum.TryParse(part[1..], out ConsoleColor color))
+                Console.ForegroundColor = color;
+            else
+                Console.Write(part);
         }
     }
 }
