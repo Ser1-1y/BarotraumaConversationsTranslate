@@ -44,7 +44,7 @@ public static class Menu
                 }
                 else
                 {
-                    Console.WriteLine($"  {options[i]}");
+                    Console.WriteLine($"  {options[i]}   ");
                 }
             }
 

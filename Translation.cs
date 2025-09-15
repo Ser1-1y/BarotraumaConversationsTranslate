@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Translate;
@@ -60,6 +61,9 @@ internal static class Document
 
 public static class Translation
 {
+    private static readonly Regex Cyrillic = Count.CyrillicRegex();
+    private static readonly Regex NumbersAndDots = Count.NumbersAndDotsRegex();
+
     public static TranslationResult Process(string filePath, Config config, string configPath)
     {
         Console.Clear();
@@ -86,12 +90,12 @@ public static class Translation
             if (line == null
                 || string.IsNullOrWhiteSpace(line.Value)
                 || line.Value == "..."
-                || Count.NumbersAndDotsRegex().IsMatch(line.Value))
+                || NumbersAndDots.IsMatch(line.Value))
             {
                 continue;
             }
 
-            if (Count.CyrillicRegex().IsMatch(line.Value))
+            if (Cyrillic.IsMatch(line.Value))
             {
                 if (config.ShowLoadedStrings)
                     Console.WriteLine($"Skipping: {line.Value}");

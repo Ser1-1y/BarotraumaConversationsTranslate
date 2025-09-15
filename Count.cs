@@ -5,6 +5,7 @@ namespace Translate;
 
 public static partial class Count
 {
+    private static readonly Regex Cyrillic = CyrillicRegex();
     public static int English(string path) => CountLines(path, false);
     public static int Translated(string path) => CountLines(path, true);
 
@@ -15,7 +16,7 @@ public static partial class Count
         return nodes.SelectNodes("//Conversation")!.Cast<XmlNode>().Count(node =>
         {
             var line = node.Attributes?["line"]?.Value ?? "";
-            return CyrillicRegex().IsMatch(line) == cyrillic;
+            return Cyrillic.IsMatch(line) == cyrillic;
         });
     }
     
