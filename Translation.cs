@@ -8,15 +8,15 @@ public enum TranslationResult
 {
     Completed,
     ExitRequested,
-    BackToMenu
+    BackToMenu,
 }
 
 internal static class Document
 {
     private static void RedrawInput(StringBuilder buffer, int cursorPos)
     {
-        Console.Write("\r"); // Move to start of line
-        Console.Write(buffer.ToString() + " "); // Draw text + clear leftover char
+        Console.Write("\r");
+        Console.Write(buffer + " ");
         Console.SetCursorPosition(cursorPos, Console.CursorTop);
     }
 

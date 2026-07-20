@@ -4,29 +4,39 @@ public static class Helpers
 {
     public static string GetFilePath(Config config, string configPath)
     {
-        if (!config.FirstTimeUsing && !string.IsNullOrEmpty(config.LastFile))
-            return config.LastFile;
+        var validPath = TryProcessPath(config.LastFile, config, configPath);
+        if (validPath != null)
+            return validPath;
 
         while (true)
         {
-            var path = Menu.ChangeFilePath();
-
-            if (path.StartsWith("\"") && path.EndsWith("\""))
-                path = path[1..^1];
-
-            if (!path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
-                path += ".xml";
-
-            if (File.Exists(path))
-            {
-                config.LastFile = path;
-                Config.Write(configPath, config);
-                return path;
-            }
+            var rawPath = Menu.ChangeFilePath();
+            validPath = TryProcessPath(rawPath, config, configPath);
+            
+            if (validPath != null)
+                return validPath;
 
             Console.WriteLine("Could not find such file. Press any key to retry.");
             Console.ReadKey();
         }
+    }
+
+    private static string? TryProcessPath(string? path, Config config, string configPath)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return null;
+
+        if (path.StartsWith('"') && path.EndsWith('"'))
+            path = path[1..^1];
+
+        if (!path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+            path += ".xml";
+
+        if (!File.Exists(path)) 
+            return null;
+        config.LastFile = path;
+        Config.Write(configPath, config);
+        return path;
     }
 }
 
@@ -37,9 +47,9 @@ public static class Color
         var parts = text.Split('<', '>');
         foreach (var part in parts)
         {
-            if (part.StartsWith("/"))
+            if (part.StartsWith('/'))
                 Console.ResetColor();
-            else if (part.StartsWith("=") && Enum.TryParse(part[1..], out ConsoleColor color))
+            else if (part.StartsWith('=') && Enum.TryParse(part[1..], out ConsoleColor color))
                 Console.ForegroundColor = color;
             else
                 Console.Write(part);
