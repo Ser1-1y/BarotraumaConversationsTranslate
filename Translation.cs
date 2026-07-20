@@ -130,6 +130,8 @@ public static class Translation
             return TranslationResult.BackToMenu;
         }
 
+        var startTime = DateTime.Now;
+        
         foreach (XmlNode conv in nodes)
         {
             var line = conv.Attributes?["line"];
@@ -148,7 +150,7 @@ public static class Translation
                         continue;
 
                     Document.Save(filePath, configPath, config, xmlDoc);
-                    GetResults(filePath, translatedLinesCount);
+                    GetResults(filePath, translatedLinesCount, startTime);
                     return TranslationResult.ExitRequested;
                 }
 
@@ -166,7 +168,7 @@ public static class Translation
         }
 
         Document.Save(filePath, configPath, config, xmlDoc);
-        GetResults(filePath, translatedLinesCount);
+        GetResults(filePath, translatedLinesCount, startTime);
         return TranslationResult.Completed;
     }
 
@@ -182,19 +184,18 @@ public static class Translation
         return true;
     }
 
-    private static void GetResults(string filePath, int translatedLinesCount)
+    private static void GetResults(string filePath, int translatedLinesCount, DateTime startTime)
     {
         var transLines = Count.Translated(filePath);
         var engLines = Count.English(filePath);
 
-        var elapsed = DateTime.Now - File.GetLastWriteTime(filePath);
-        var minutes = elapsed.TotalMinutes;
+        var elapsed = DateTime.Now - startTime;
         var secPerLine = translatedLinesCount > 0 ? Math.Round(elapsed.TotalSeconds / translatedLinesCount, 1) : 0;
 
         Color.Write($"Saved as <=Green>'{filePath}'</>.\n");
         Color.Write($"Translated <=Green>{translatedLinesCount}</> lines, <=Green>{transLines}</> in total.\n");
         Color.Write($"<=Green>{engLines}</> English lines left.\n");
-        Color.Write($"Time: <=Green>{minutes:F1}</> minutes.\n");
+        Color.Write($"Time: <=Green>{elapsed.TotalMinutes:F1}</> minutes.\n");
         Color.Write($"≈ <=Green>{secPerLine}</> sec/line.\n");
 
         Console.ReadKey();

@@ -56,19 +56,6 @@ public static class Menu
         new("Save And Exit", Settings.SaveAndExit),
         new("Exit Without Saving", Settings.ExitWithoutSaving),
     ];
-    
-    private static void PrintLogo()
-    {
-        Console.WriteLine("""
-                          ┌───────────────────────────────────────────────────────────────────────────────────────┐
-                          │                                                                                       │
-                          │   ─────┬─────           ────────┐  ┌───────┐  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐  │
-                          │        │       ───────     ────┤  │       │  │      │  │      │  │      │  │      │  │
-                          │        │                ────────┘  └───────┘  └──────┘  └──────┘  └──────┘  └──────┘  │
-                          │                                                                                       │
-                          └───────────────────────────────────────────────────────────────────────────────────────┘
-                          """);
-    }
 
     private static bool VisualYesNoMenu(string title) =>
         Tui.Choice(BoolAction, title: title) == Bool.Yes;
@@ -166,8 +153,6 @@ public static class Menu
     public static MenuResult StartMenu(Config config)
     {
         Console.Clear();
-        PrintLogo();
-
         const string configPath = Program.ConfigPath;
         
         var startOptions = new Tui.Option<StartMenuAction>[]
