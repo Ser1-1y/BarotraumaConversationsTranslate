@@ -8,10 +8,7 @@
     <StartupObject>Translate.Program</StartupObject>
     <SignAssembly>False</SignAssembly>
     <ApplicationIcon>Untitled.ico</ApplicationIcon>
+    <!-- <PublishAot>true</PublishAot> -->
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-  </ItemGroup>
 
 </Project>

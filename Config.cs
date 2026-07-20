@@ -1,10 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Translate;
 
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(Config))]
+internal partial class ConfigJsonContext : JsonSerializerContext { }
+
 public class Config
 {
-    public string Version { get; set; } = "2.0.0.0";
+    public string Version { get; set; } = "3.0.0.0";
     public bool FirstTimeUsing { get; set; } = true;
     public bool ShowLoadedStrings { get; set; }
     public string? LastFile { get; set; }
@@ -33,8 +38,8 @@ public class Config
     }
 
     private static Config Read(string path) =>
-        JsonConvert.DeserializeObject<Config>(File.ReadAllText(path)) ?? new Config();
+        JsonSerializer.Deserialize(File.ReadAllText(path), ConfigJsonContext.Default.Config) ?? new Config();
 
     public static void Write(string path, Config config) =>
-        File.WriteAllText(path, JsonConvert.SerializeObject(config, Formatting.Indented));
+        File.WriteAllText(path, JsonSerializer.Serialize(config, ConfigJsonContext.Default.Config));
 }
