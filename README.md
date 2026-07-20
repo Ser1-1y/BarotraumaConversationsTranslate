@@ -1,14 +1,14 @@
 ---
 
-# XML Conversation Translator for Barotrauma
+# BaroLingua (XML Conversation Translator)
 
 ## Overview
 
-It works for translating from any language that does not use Cyrillic into Russian.
+A TUI based tool designed to localize Barotrauma XML conversation files into Russian.
 
 ## Features
 - Loads conversation lines from an XML file.
-- Skips lines that contain Russian text, with an option to display these lines.
+- Shows all the info about a line (tags, id).
 - Saves the translated lines back to the original XML file.
 - Tracks the number of translated lines and remaining English lines.
 
@@ -16,31 +16,25 @@ It works for translating from any language that does not use Cyrillic into Russi
 
 ### Prerequisites
 
-- .NET SDK 8
-- Newtonsoft.Json library
+- .NET SDK 10
 
-### Installation
+### Running
 
-1. Clone the repository:
    ```bash
-   git clone https://github.com/Ser1-1y/BarotraumaConversationsTranslate.git
-   cd BarotraumaConversationsTranslate
+   git clone https://github.com/Ser1-1y/BaroLingua.git
+   cd BaroLingua
+   dotnet run
    ```
-
-2. Open the project.
-
-3. Restore the NuGet packages if necessary.
 
 ### Configuration
 
-You can configure application using `config.json` or settings menu.
+You can configure the application by modifying `config.json` (created on the first run) or through the settings menu.
 
 ### Usage
 
 1. Run the application.
 2. Input the path to the XML file you wish to translate.
-3. Translate lines. Type `Exit` to stop.
-4. The translated XML will be saved, and a summary of the translation session will be displayed.
+3. Translate lines. Press 'Escape' to stop.
 
 ### Example XML Structure
 
