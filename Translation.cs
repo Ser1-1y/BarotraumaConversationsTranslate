@@ -18,9 +18,11 @@ internal static class Document
 
     private static void RedrawInput(StringBuilder buffer, int cursorPos)
     {
-        Console.Write("\r");
-        Console.Write(buffer + " ");
+        Console.CursorVisible = false;
+        Console.Write("\r" + buffer + "\e[K");
+    
         Console.SetCursorPosition(cursorPos, Console.CursorTop);
+        Console.CursorVisible = true;
     }
 
     internal static void Save(string filePath, string configPath, Config config, XmlDocument xmlDoc)
@@ -51,9 +53,24 @@ internal static class Document
         var buffer = new StringBuilder();
         var cursorPos = 0;
 
+        int GetPrevWordPos(int pos)
+        {
+            while (pos > 0 && char.IsWhiteSpace(buffer[pos - 1])) pos--;
+            while (pos > 0 && !char.IsWhiteSpace(buffer[pos - 1])) pos--;
+            return pos;
+        }
+
+        int GetNextWordPos(int pos)
+        {
+            while (pos < buffer.Length && char.IsWhiteSpace(buffer[pos])) pos++;
+            while (pos < buffer.Length && !char.IsWhiteSpace(buffer[pos])) pos++;
+            return pos;
+        }
+        
         while (true)
         {
             var key = Console.ReadKey(intercept: true);
+            var isCtrl = key.Modifiers.HasFlag(ConsoleModifiers.Control);
 
             // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
             switch (key.Key)
@@ -66,23 +83,26 @@ internal static class Document
                     return ExitCommand;
 
                 case ConsoleKey.Backspace when cursorPos > 0:
-                    buffer.Remove(--cursorPos, 1);
+                    var backTo = isCtrl ? GetPrevWordPos(cursorPos) : cursorPos - 1;
+                    buffer.Remove(backTo, cursorPos - backTo);
+                    cursorPos = backTo;
                     RedrawInput(buffer, cursorPos);
                     break;
 
                 case ConsoleKey.Delete when cursorPos < buffer.Length:
-                    buffer.Remove(cursorPos, 1);
+                    var delTo = isCtrl ? GetNextWordPos(cursorPos) : cursorPos + 1;
+                    buffer.Remove(cursorPos, delTo - cursorPos);
                     RedrawInput(buffer, cursorPos);
                     break;
 
                 case ConsoleKey.LeftArrow when cursorPos > 0:
-                    cursorPos--;
-                    Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                    cursorPos = isCtrl ? GetPrevWordPos(cursorPos) : cursorPos - 1;
+                    RedrawInput(buffer, cursorPos);
                     break;
 
                 case ConsoleKey.RightArrow when cursorPos < buffer.Length:
-                    cursorPos++;
-                    Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
+                    cursorPos = isCtrl ? GetNextWordPos(cursorPos) : cursorPos + 1;
+                    RedrawInput(buffer, cursorPos);
                     break;
 
                 case ConsoleKey.Home:
@@ -147,7 +167,10 @@ public static class Translation
                 if (translatedLine == Document.ExitCommand)
                 {
                     if (!Menu.ExitMenu())
+                    {
+                        Console.Clear();
                         continue;
+                    }
 
                     Document.Save(filePath, configPath, config, xmlDoc);
                     GetResults(filePath, translatedLinesCount, startTime);
