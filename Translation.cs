@@ -13,8 +13,8 @@ public enum TranslationResult
 
 internal static class Document
 {
-    public const string ExitCommand = "__EXIT__";
-    public const string SettingsCommand = "Settings";
+    public const string ExitCommand = "/exit";
+    public const string SettingsCommand = "/settings";
 
     private static void RedrawInput(StringBuilder buffer, int cursorPos)
     {

@@ -16,12 +16,12 @@ public static class Tui
             // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
             switch (key)
             {
-                case ConsoleKey.RightArrow:
+                case ConsoleKey.LeftArrow:
                 case ConsoleKey.UpArrow:
                     selected = (selected - 1 + options.Length) % options.Length;
                     break;
 
-                case ConsoleKey.LeftArrow:
+                case ConsoleKey.RightArrow:
                 case ConsoleKey.DownArrow:
                     selected = (selected + 1) % options.Length;
                     break;

@@ -164,7 +164,7 @@ public static class Menu
             new("Exit", StartMenuAction.Exit),
         };
 
-        var choice = Tui.Choice(startOptions, title: "Start Menu");
+        var choice = Tui.Choice(startOptions, title: "Menu");
 
         switch (choice)
         {
@@ -183,8 +183,9 @@ public static class Menu
                 return MenuResult.Continue;
                 
             case StartMenuAction.Help:
-                Console.WriteLine("Press 'Escape' to exit while translating.\n" +
-                                  "Write 'Settings' to access Settings.");
+                Color.Write($"<=Green>Escape</>      - Save and exit\n" +
+                            $"<=Green>\"{Document.ExitCommand}\"</>     - Save and exit\n" +
+                            $"<=Green>\"{Document.SettingsCommand}\"</> - Access Settings\n");
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();
                 return MenuResult.Continue;
