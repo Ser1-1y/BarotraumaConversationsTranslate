@@ -134,7 +134,8 @@ public static class Menu
     {
         Console.Clear();
         Console.WriteLine("Enter path to the XML file:");
-        var newFilePath = Console.ReadLine() ?? "";
+        
+        var newFilePath = Tui.Input(config.LastFile ?? ""); 
         config.LastFile = newFilePath;
         
         Config.Write(configPath, config);
@@ -147,7 +148,7 @@ public static class Menu
     {
         Console.Clear();
         Console.WriteLine("Enter path to the XML file:");
-        return Console.ReadLine() ?? "";
+        return Tui.Input();
     }
 
     public static MenuResult StartMenu(Config config)
@@ -184,7 +185,7 @@ public static class Menu
                 
             case StartMenuAction.Help:
                 Color.Write($"<=Green>Escape</>      - Save and exit\n" +
-                            $"<=Green>\"{Document.ExitCommand}\"</>     - Save and exit\n" +
+                            $"<=Green>\"{Document.ExitCommand}\"</>      - Save and exit\n" +
                             $"<=Green>\"{Document.SettingsCommand}\"</> - Access Settings\n");
                 Console.WriteLine("Press any key to continue...");
                 Console.ReadKey();

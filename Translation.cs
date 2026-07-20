@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Xml;
 
 namespace Translate;
@@ -15,15 +14,6 @@ internal static class Document
 {
     public const string ExitCommand = "/exit";
     public const string SettingsCommand = "/settings";
-
-    private static void RedrawInput(StringBuilder buffer, int cursorPos)
-    {
-        Console.CursorVisible = false;
-        Console.Write("\r" + buffer + "\e[K");
-    
-        Console.SetCursorPosition(cursorPos, Console.CursorTop);
-        Console.CursorVisible = true;
-    }
 
     internal static void Save(string filePath, string configPath, Config config, XmlDocument xmlDoc)
     {
@@ -50,80 +40,7 @@ internal static class Document
         Color.Write($"<=Green>Original:</> {original} | <=Green>Speaker:</> \"{node.Attributes?["speaker"]?.Value}\"");
         Color.Write(tags != null ? $" <=Green>Tags:</> {tags.Value}\n" : "\n");
 
-        var buffer = new StringBuilder();
-        var cursorPos = 0;
-
-        int GetPrevWordPos(int pos)
-        {
-            while (pos > 0 && char.IsWhiteSpace(buffer[pos - 1])) pos--;
-            while (pos > 0 && !char.IsWhiteSpace(buffer[pos - 1])) pos--;
-            return pos;
-        }
-
-        int GetNextWordPos(int pos)
-        {
-            while (pos < buffer.Length && char.IsWhiteSpace(buffer[pos])) pos++;
-            while (pos < buffer.Length && !char.IsWhiteSpace(buffer[pos])) pos++;
-            return pos;
-        }
-        
-        while (true)
-        {
-            var key = Console.ReadKey(intercept: true);
-            var isCtrl = key.Modifiers.HasFlag(ConsoleModifiers.Control);
-
-            // ReSharper disable once SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-            switch (key.Key)
-            {
-                case ConsoleKey.Enter:
-                    Console.WriteLine();
-                    return buffer.ToString();
-
-                case ConsoleKey.Escape:
-                    return ExitCommand;
-
-                case ConsoleKey.Backspace when cursorPos > 0:
-                    var backTo = isCtrl ? GetPrevWordPos(cursorPos) : cursorPos - 1;
-                    buffer.Remove(backTo, cursorPos - backTo);
-                    cursorPos = backTo;
-                    RedrawInput(buffer, cursorPos);
-                    break;
-
-                case ConsoleKey.Delete when cursorPos < buffer.Length:
-                    var delTo = isCtrl ? GetNextWordPos(cursorPos) : cursorPos + 1;
-                    buffer.Remove(cursorPos, delTo - cursorPos);
-                    RedrawInput(buffer, cursorPos);
-                    break;
-
-                case ConsoleKey.LeftArrow when cursorPos > 0:
-                    cursorPos = isCtrl ? GetPrevWordPos(cursorPos) : cursorPos - 1;
-                    RedrawInput(buffer, cursorPos);
-                    break;
-
-                case ConsoleKey.RightArrow when cursorPos < buffer.Length:
-                    cursorPos = isCtrl ? GetNextWordPos(cursorPos) : cursorPos + 1;
-                    RedrawInput(buffer, cursorPos);
-                    break;
-
-                case ConsoleKey.Home:
-                    Console.SetCursorPosition(Console.CursorLeft - cursorPos, Console.CursorTop);
-                    cursorPos = 0;
-                    break;
-
-                case ConsoleKey.End:
-                    Console.SetCursorPosition(Console.CursorLeft + (buffer.Length - cursorPos), Console.CursorTop);
-                    cursorPos = buffer.Length;
-                    break;
-
-                default:
-                    if (!char.IsControl(key.KeyChar))
-                    {
-                        buffer.Insert(cursorPos++, key.KeyChar);
-                        RedrawInput(buffer, cursorPos);
-                    }
-                    break;
-            }
-        }
+        return Tui.Input("", ExitCommand);
     }
 }
 
